@@ -28,7 +28,15 @@ export interface HistoryEntry {
   timestamp: number;
   type: 'tarot' | 'yesno';
   question: string;
+  topic: string;
   result: TarotResponse | YesNoResponse;
+}
+
+export interface Lead {
+  name: string;
+  email: string;
+  whatsapp: string;
+  timestamp: number;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';

@@ -37,7 +37,7 @@ export function TarotCard({ name, isRevealed, onClick }: TarotCardProps) {
 
   return (
     <div 
-      className="relative w-64 h-96 cursor-pointer perspective-1000"
+      className="relative w-48 h-72 cursor-pointer perspective-1000"
       onClick={onClick}
     >
       <motion.div
@@ -48,8 +48,8 @@ export function TarotCard({ name, isRevealed, onClick }: TarotCardProps) {
         {/* Back of the card */}
         <div className="absolute inset-0 backface-hidden bg-slate-950 rounded-2xl border-4 border-accent shadow-2xl flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent via-transparent to-transparent" />
-          <div className="relative z-10 flex flex-col items-center gap-6 text-accent">
-            <div className="w-24 h-24 p-1 rounded-xl bg-white/5 border-2 border-accent/40 shadow-2xl overflow-hidden flex items-center justify-center">
+          <div className="relative z-10 flex flex-col items-center gap-4 text-accent">
+            <div className="w-16 h-16 p-1 rounded-xl bg-white/5 border-2 border-accent/40 shadow-2xl overflow-hidden flex items-center justify-center">
               <img 
                 src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
                 alt="INTUA Logo" 
@@ -57,8 +57,8 @@ export function TarotCard({ name, isRevealed, onClick }: TarotCardProps) {
                 referrerPolicy="no-referrer"
               />
             </div>
-            <Sparkles size={40} className="drop-shadow-glow" />
-            <span className="serif text-4xl font-bold tracking-[0.2em] text-accent drop-shadow-sm">INTUA</span>
+            <Sparkles size={24} className="drop-shadow-glow" />
+            <span className="serif text-2xl font-bold tracking-[0.2em] text-accent drop-shadow-sm">INTUA</span>
           </div>
           {/* Decorative pattern */}
           <div className="absolute inset-4 border-2 border-accent/30 rounded-xl" />

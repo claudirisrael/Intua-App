@@ -3,6 +3,16 @@ import { TarotResponse, YesNoResponse } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+export async function getTopic(question: string): Promise<string> {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Analise a seguinte pergunta de um usuário de um app de Tarô e categorize-a em uma única palavra (ex: Amor, Carreira, Saúde, Dinheiro, Espiritualidade, Família, Outros).
+Pergunta: "${question}"
+Responda apenas com a categoria.`,
+  });
+  return response.text.trim();
+}
+
 export async function getTarotGuidance(question: string): Promise<TarotResponse> {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
