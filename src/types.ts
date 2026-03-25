@@ -40,3 +40,4 @@ export interface Lead {
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type AppMode = 'menu' | 'tarot' | 'yesno';
