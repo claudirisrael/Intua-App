@@ -5,11 +5,12 @@
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Inter", sans-serif;
   
-  --color-paper: #0a0a0a;
+  --color-paper: #020205;
   --color-ink: #ffffff;
   --color-accent: #8b5cf6; /* Vibrant Violet */
   --color-accent-soft: rgba(139, 92, 246, 0.1);
-  --color-border: rgba(139, 92, 246, 0.3);
+  --color-border: rgba(139, 92, 246, 0.2);
+  --color-muted: #1a1a2e;
 }
 
 html {
@@ -24,24 +25,24 @@ body {
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(10, 10, 20, 0.6);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-border);
   border-radius: 2rem;
 }
 
 .glass-dark {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(2, 2, 5, 0.8);
   backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.15);
 }
 
 .mystic-glow {
-  box-shadow: 0 0 40px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 50px rgba(139, 92, 246, 0.15);
 }
 
 .text-mystic {
-  background: linear-gradient(to bottom, #ffffff 0%, #a78bfa 100%);
+  background: linear-gradient(to bottom, #ffffff 30%, #a78bfa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

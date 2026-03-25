@@ -79,6 +79,11 @@ export default function App() {
         localStorage.setItem('intua-user-info', JSON.stringify(newLead));
         setLeadInfo(newLead);
         navigate('/pt/home');
+      } else {
+        // Fallback navigation if API fails
+        localStorage.setItem('intua-user-info', JSON.stringify(newLead));
+        setLeadInfo(newLead);
+        navigate('/pt/home');
       }
     } catch (error) {
       console.error("Failed to save lead:", error);
@@ -235,83 +240,99 @@ export default function App() {
         <Route path="/" element={<Navigate to="/pt/login" replace />} />
         <Route path="/pt" element={<Navigate to="/pt/login" replace />} />
         <Route path="/pt/login" element={
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-50 overflow-hidden">
-            {/* Soft Background Texture */}
-            <div className="absolute inset-0 opacity-40">
-              <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_20%,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
-              <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_80%,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#020205] overflow-hidden">
+            {/* Mystic Background Elements */}
+            <div className="absolute inset-0">
+              <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px] animate-pulse" />
+              <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px] animate-pulse" />
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
             </div>
 
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               className="relative z-10 w-full max-w-5xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
             >
               <div className="space-y-12">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-accent">
-                    <Sparkles size={20} />
-                    <span className="text-sm font-black uppercase tracking-[0.4em]">Maga das Escolhas</span>
+                <div className="space-y-8">
+                  <div className="flex items-center gap-6">
+                    <div className="p-2 glass-dark rounded-2xl border-accent/30">
+                      <img 
+                        src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
+                        alt="INTUA Logo" 
+                        className="w-16 h-16 object-cover rounded-xl"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-accent">
+                        <Sparkles size={16} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em]">Maga das Escolhas</span>
+                      </div>
+                      <h1 className="text-5xl font-bold serif text-white tracking-tight">INTUA</h1>
+                    </div>
                   </div>
-                  <h1 className="title-xl text-slate-950">INTUA</h1>
-                  <p className="text-xl font-medium leading-relaxed max-w-md text-slate-600">
+                  
+                  <p className="text-xl font-light leading-relaxed max-w-md text-white/70">
                     A sabedoria milenar do Tarô traduzida para o seu momento presente. Encontre clareza em suas escolhas através de uma experiência envolvente e intuitiva.
                   </p>
                 </div>
                 
-                <div className="hidden lg:block w-full h-px bg-accent/20" />
+                <div className="hidden lg:block w-32 h-px bg-accent/30" />
                 
                 <div className="hidden lg:grid grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <h4 className="text-accent text-xs font-black uppercase tracking-widest">Clareza</h4>
-                    <p className="text-sm text-slate-500">Respostas diretas para as suas dúvidas mais profundas.</p>
+                    <h4 className="text-accent text-[10px] font-black uppercase tracking-widest">Clareza</h4>
+                    <p className="text-sm text-white/40">Respostas diretas para as suas dúvidas mais profundas.</p>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="text-accent text-xs font-black uppercase tracking-widest">Intuição</h4>
-                    <p className="text-sm text-slate-500">Conecte-se com o seu eu interior através dos arcanos.</p>
+                    <h4 className="text-accent text-[10px] font-black uppercase tracking-widest">Intuição</h4>
+                    <p className="text-sm text-white/40">Conecte-se com o seu eu interior através dos arcanos.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-10 md:p-12 rounded-[3rem] bg-white shadow-2xl border border-slate-200 space-y-8">
+              <div className="p-10 md:p-12 glass-dark border-accent/20 space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-bold serif text-slate-900">Começar Jornada</h2>
-                  <p className="text-xs font-bold text-accent uppercase tracking-widest">Identifique-se para o oráculo</p>
+                  <h2 className="text-3xl font-bold serif text-white">Começar Jornada</h2>
+                  <p className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">Identifique-se para o oráculo</p>
                 </div>
 
                 <form onSubmit={handleLeadSubmit} className="space-y-6">
                   <div className="space-y-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nome</label>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Nome</label>
                       <input 
                         required
                         type="text"
                         placeholder="Como deseja ser chamado?"
-                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent focus:bg-white text-slate-900 font-bold"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent/50 focus:bg-white/10 text-white font-medium placeholder:text-white/10"
                         value={leadFormData.name}
                         onChange={e => setLeadFormData(prev => ({ ...prev, name: e.target.value }))}
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">E-mail</label>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">E-mail</label>
                       <input 
                         required
                         type="email"
                         placeholder="seu@email.com"
-                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent focus:bg-white text-slate-900 font-bold"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent/50 focus:bg-white/10 text-white font-medium placeholder:text-white/10"
                         value={leadFormData.email}
                         onChange={e => setLeadFormData(prev => ({ ...prev, email: e.target.value }))}
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">WhatsApp</label>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">WhatsApp</label>
                       <input 
                         required
                         type="tel"
                         placeholder="(00) 00000-0000"
-                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent focus:bg-white text-slate-900 font-bold"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent/50 focus:bg-white/10 text-white font-medium placeholder:text-white/10"
                         value={leadFormData.whatsapp}
                         onChange={e => setLeadFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
                       />
@@ -320,9 +341,10 @@ export default function App() {
 
                   <button 
                     type="submit"
-                    className="w-full py-5 bg-accent text-white rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-accent/90 transition-all shadow-xl shadow-accent/20"
+                    className="w-full py-5 bg-accent text-white rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-accent/80 transition-all shadow-2xl shadow-accent/20 relative group overflow-hidden"
                   >
-                    Entrar no Oráculo
+                    <span className="relative z-10">Entrar no Oráculo</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </button>
                 </form>
               </div>
@@ -594,7 +616,7 @@ export default function App() {
                 <motion.h1 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="serif text-5xl md:text-8xl font-light tracking-tighter mb-4 text-white"
+                  className="title-xl text-mystic mb-4"
                 >
                   INTUA
                 </motion.h1>
@@ -602,7 +624,7 @@ export default function App() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="max-w-lg mx-auto leading-relaxed font-light text-base md:text-xl px-4 opacity-40"
+                  className="max-w-lg mx-auto leading-relaxed font-light text-base md:text-xl px-4 text-white/50"
                 >
                   A sabedoria milenar do Tarô traduzida para o seu momento presente. 
                   Encontre clareza em suas escolhas.
@@ -957,11 +979,18 @@ export default function App() {
                 </AnimatePresence>
               </main>
 
-              <footer className="w-full py-12 text-center">
-                <p className="text-[8px] font-black tracking-[0.6em] uppercase opacity-20">
-                  © Maga Das Escolhas. Todos os direitos reservados.
+            <footer className="w-full max-w-4xl px-4 py-12 md:py-20 text-center relative z-10">
+              <div className="w-12 h-px bg-accent/30 mx-auto mb-8" />
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex items-center gap-2 text-accent/50 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all">
+                  <Sparkles size={12} />
+                  <span className="text-[10px] uppercase tracking-[0.4em] font-black">Maga das Escolhas</span>
+                </div>
+                <p className="text-[10px] uppercase tracking-widest text-white/20 font-medium">
+                  © 2026 INTUA • Todos os direitos reservados
                 </p>
-              </footer>
+              </div>
+            </footer>
             </div>
           </div>
         );
