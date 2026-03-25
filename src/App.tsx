@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useParams, useLocation } from "re
 import { motion, AnimatePresence } from "motion/react";
 import { Search, RotateCcw, ArrowRight, Loader2, Sparkles, Sun, Moon, HelpCircle, MessageSquare, Menu, X, History, Clock, Trash2, ChevronDown, Monitor, Calendar, Lock, Crown, Heart, Briefcase, User, TrendingUp, BarChart3, PieChart as PieChartIcon, Mail, Phone, LogOut } from "lucide-react";
 import { TarotCard } from "./components/TarotCard";
-import { getTarotGuidance, getYesNoGuidance, getTopic } from "./services/gemini";
+import { getTarotGuidance, getYesNoGuidance, getTopic } from "./services/ai";
 import { TarotResponse, YesNoResponse, HistoryEntry, ThemeMode, Lead } from "./types";
 
 type AppMode = 'menu' | 'tarot' | 'yesno';
