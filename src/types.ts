@@ -23,13 +23,36 @@ export interface YesNoResponse {
   closing_message: string;
 }
 
+export interface RelationshipResponse {
+  is_relevant: boolean;
+  card_name: string;
+  card_meaning: string;
+  guidance: string;
+  connection_energy: string;
+  advice_for_you: string;
+  advice_for_partner: string;
+  future_outlook: string;
+  closing_message: string;
+}
+
+export interface CareerResponse {
+  is_relevant: boolean;
+  card_name: string;
+  card_meaning: string;
+  guidance: string;
+  professional_situation: string;
+  financial_outlook: string;
+  strategic_advice: string;
+  closing_message: string;
+}
+
 export interface HistoryEntry {
   id: string;
   timestamp: number;
-  type: 'tarot' | 'yesno';
+  type: 'tarot' | 'yesno' | 'relationship' | 'career';
   question: string;
   topic: string;
-  result: TarotResponse | YesNoResponse;
+  result: TarotResponse | YesNoResponse | RelationshipResponse | CareerResponse;
 }
 
 export interface Lead {
@@ -40,4 +63,4 @@ export interface Lead {
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';
-export type AppMode = 'menu' | 'tarot' | 'yesno';
+export type AppMode = 'menu' | 'tarot' | 'yesno' | 'relationship' | 'career';

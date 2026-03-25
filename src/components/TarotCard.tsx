@@ -37,7 +37,7 @@ export function TarotCard({ name, isRevealed, onClick }: TarotCardProps) {
 
   return (
     <div 
-      className="relative w-56 h-80 cursor-pointer perspective-1000"
+      className="relative w-48 h-72 sm:w-56 sm:h-80 cursor-pointer perspective-1000"
       onClick={onClick}
     >
       <motion.div
@@ -46,45 +46,25 @@ export function TarotCard({ name, isRevealed, onClick }: TarotCardProps) {
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
         {/* Back of the card */}
-        <div className="absolute inset-0 backface-hidden bg-black rounded-[2.5rem] border-2 border-accent/30 shadow-2xl flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-2 border border-accent/10 rounded-[2rem]" />
-          <div className="absolute inset-4 border-[0.5px] border-accent/5 rounded-[1.5rem]" />
-          
-          {/* Corner accents */}
-          <div className="absolute top-6 left-6 w-8 h-8 border-t-2 border-l-2 border-accent/40 rounded-tl-xl" />
-          <div className="absolute top-6 right-6 w-8 h-8 border-t-2 border-r-2 border-accent/40 rounded-tr-xl" />
-          <div className="absolute bottom-6 left-6 w-8 h-8 border-b-2 border-l-2 border-accent/40 rounded-bl-xl" />
-          <div className="absolute bottom-6 right-6 w-8 h-8 border-b-2 border-r-2 border-accent/40 rounded-br-xl" />
-
-          <div className="relative z-10 flex flex-col items-center gap-6">
-            <div className="w-20 h-20 p-2 border-2 border-accent/20 rounded-2xl overflow-hidden flex items-center justify-center bg-white/5 backdrop-blur-sm">
-              <img 
-                src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
-                alt="INTUA Logo" 
-                className="w-full h-full object-cover rounded-xl opacity-40"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="serif text-2xl font-bold tracking-[0.4em] text-accent">INTUA</span>
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Maga das Escolhas</span>
-            </div>
+        <div className="absolute inset-0 backface-hidden bg-[#1a1a1a] rounded-xl shadow-xl flex items-center justify-center overflow-hidden">
+          <div className="w-full h-full border-8 border-[#2a2a2a] rounded-xl flex items-center justify-center">
+            <img 
+              src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
+              alt="INTUA Logo" 
+              className="w-12 h-12 object-cover opacity-10 grayscale"
+              referrerPolicy="no-referrer"
+            />
           </div>
         </div>
 
         {/* Front of the card */}
-        <div className="absolute inset-0 backface-hidden bg-black rounded-[2.5rem] border-2 border-accent/40 shadow-2xl overflow-hidden rotate-y-180">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90 z-10" />
+        <div className="absolute inset-0 backface-hidden bg-white rounded-xl shadow-xl overflow-hidden rotate-y-180">
           <img 
             src={imageUrl} 
             alt={name}
-            className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+            className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute bottom-8 left-0 right-0 z-20 text-center px-6">
-            <span className="serif text-xl font-bold text-white tracking-[0.2em] uppercase">{name}</span>
-            <div className="w-12 h-1 bg-accent mx-auto mt-3 rounded-full shadow-[0_0_15px_rgba(139,92,246,0.5)]" />
-          </div>
         </div>
       </motion.div>
     </div>
