@@ -225,89 +225,85 @@ export default function App() {
     <div className={`min-h-screen flex flex-col items-center transition-all duration-700 ${themeClasses} selection:bg-accent/30 overflow-x-hidden`}>
       {/* Global Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className={`absolute -top-48 -right-48 w-[800px] h-[800px] rounded-full blur-[160px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-accent/10' : 'bg-accent/5'}`} />
-        <div className={`absolute -bottom-48 -left-48 w-[800px] h-[800px] rounded-full blur-[160px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-mystic-purple/20' : 'bg-mystic-purple/10'}`} />
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full blur-[200px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-mystic-indigo/10' : 'bg-mystic-indigo/5'}`} />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
       </div>
 
       <Routes>
         <Route path="/" element={<Navigate to="/pt/login" replace />} />
         <Route path="/pt" element={<Navigate to="/pt/login" replace />} />
         <Route path="/pt/login" element={
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950 overflow-hidden">
-            {/* Immersive Background */}
-            <div className="absolute inset-0">
-              <img 
-                src="https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2071&auto=format&fit=crop" 
-                alt="Mystical Night Sky" 
-                className="w-full h-full object-cover opacity-40 scale-110 animate-pulse-slow"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-transparent to-slate-950" />
-              <div className="absolute inset-0 bg-radial-gradient from-accent/5 to-transparent" />
-            </div>
-
-            {/* Floating Orbs */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-[120px] animate-float" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-900/20 rounded-full blur-[120px] animate-float-delayed" />
-
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black overflow-hidden">
             <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative z-10 w-full max-w-lg px-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="relative z-10 w-full max-w-5xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
             >
-              <div className="glass p-8 md:p-12 rounded-[3rem] shadow-2xl mystic-glow space-y-10">
-                <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="p-1 rounded-[2.5rem] border-2 border-accent/30 bg-white/5 backdrop-blur-xl shadow-xl">
-                    <img 
-                      src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
-                      alt="INTUA" 
-                      className="w-24 h-24 object-cover rounded-[2.2rem]"
-                      referrerPolicy="no-referrer"
-                    />
+              <div className="space-y-12">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-accent">
+                    <Sparkles size={16} />
+                    <span className="text-xs font-black uppercase tracking-[0.4em]">Maga das Escolhas</span>
+                  </div>
+                  <h1 className="title-xl text-white">INTUA</h1>
+                  <p className="text-xl font-light leading-relaxed max-w-md opacity-60">
+                    A sabedoria milenar do Tarô traduzida para o seu momento presente. Encontre clareza em suas escolhas através de uma experiência minimalista e focada.
+                  </p>
+                </div>
+                
+                <div className="hidden lg:block w-full h-px bg-accent/20" />
+                
+                <div className="hidden lg:grid grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <h4 className="text-accent text-[10px] font-black uppercase tracking-widest">Clareza</h4>
+                    <p className="text-xs opacity-50">Respostas diretas para as suas dúvidas mais profundas.</p>
                   </div>
                   <div className="space-y-2">
-                    <h1 className="serif text-6xl font-bold tracking-tighter text-mystic">INTUA</h1>
-                    <p className="text-accent text-xs font-black uppercase tracking-[0.5em]">Maga das Escolhas</p>
+                    <h4 className="text-accent text-[10px] font-black uppercase tracking-widest">Intuição</h4>
+                    <p className="text-xs opacity-50">Conecte-se com o seu eu interior através dos arcanos.</p>
                   </div>
-                  <p className="text-sm opacity-70 font-medium leading-relaxed max-w-xs">
-                    A sabedoria milenar do Tarô traduzida para o seu momento presente.
-                  </p>
+                </div>
+              </div>
+
+              <div className="p-10 border-thin bg-black/40 space-y-8">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-light serif">Começar Jornada</h2>
+                  <p className="text-xs opacity-40 uppercase tracking-widest">Identifique-se para o oráculo</p>
                 </div>
 
                 <form onSubmit={handleLeadSubmit} className="space-y-6">
                   <div className="space-y-4">
-                    <div className="relative group">
-                      <User className="absolute left-6 top-1/2 -translate-y-1/2 text-accent/50 group-focus-within:text-accent transition-colors" size={20} />
+                    <div className="space-y-1">
+                      <label className="text-[9px] uppercase tracking-widest opacity-40">Nome</label>
                       <input 
                         required
                         type="text"
-                        placeholder="Seu nome"
-                        className="w-full pl-16 pr-8 py-5 rounded-2xl bg-white/5 border-2 border-white/10 outline-none transition-all font-bold text-base focus:border-accent/50 focus:bg-white/10"
+                        placeholder="Como deseja ser chamado?"
+                        className="w-full bg-transparent border-b border-white/10 py-3 outline-none transition-all focus:border-accent text-lg font-light"
                         value={leadFormData.name}
                         onChange={e => setLeadFormData(prev => ({ ...prev, name: e.target.value }))}
                       />
                     </div>
 
-                    <div className="relative group">
-                      <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-accent/50 group-focus-within:text-accent transition-colors" size={20} />
+                    <div className="space-y-1">
+                      <label className="text-[9px] uppercase tracking-widest opacity-40">E-mail</label>
                       <input 
                         required
                         type="email"
-                        placeholder="Seu e-mail"
-                        className="w-full pl-16 pr-8 py-5 rounded-2xl bg-white/5 border-2 border-white/10 outline-none transition-all font-bold text-base focus:border-accent/50 focus:bg-white/10"
+                        placeholder="seu@email.com"
+                        className="w-full bg-transparent border-b border-white/10 py-3 outline-none transition-all focus:border-accent text-lg font-light"
                         value={leadFormData.email}
                         onChange={e => setLeadFormData(prev => ({ ...prev, email: e.target.value }))}
                       />
                     </div>
 
-                    <div className="relative group">
-                      <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-accent/50 group-focus-within:text-accent transition-colors" size={20} />
+                    <div className="space-y-1">
+                      <label className="text-[9px] uppercase tracking-widest opacity-40">WhatsApp</label>
                       <input 
                         required
                         type="tel"
-                        placeholder="Seu WhatsApp"
-                        className="w-full pl-16 pr-8 py-5 rounded-2xl bg-white/5 border-2 border-white/10 outline-none transition-all font-bold text-base focus:border-accent/50 focus:bg-white/10"
+                        placeholder="(00) 00000-0000"
+                        className="w-full bg-transparent border-b border-white/10 py-3 outline-none transition-all focus:border-accent text-lg font-light"
                         value={leadFormData.whatsapp}
                         onChange={e => setLeadFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
                       />
@@ -316,7 +312,7 @@ export default function App() {
 
                   <button 
                     type="submit"
-                    className="w-full py-5 rounded-2xl bg-accent text-slate-950 font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-accent/20 text-base"
+                    className="w-full py-5 bg-accent text-black font-black uppercase tracking-[0.2em] hover:bg-white transition-all text-xs"
                   >
                     Entrar no Oráculo
                   </button>
@@ -384,29 +380,35 @@ export default function App() {
             </AnimatePresence>
 
             {/* Top Left Logo */}
-            <div className="fixed top-6 left-6 z-[60]">
+            <div className="fixed top-8 left-8 z-[60]">
               <button 
                 onClick={reset}
-                className="group p-1 rounded-xl transition-all glass border border-accent/30 shadow-2xl overflow-hidden hover:border-accent"
+                className="group flex items-center gap-4 transition-all"
                 title="Início"
               >
-                <img 
-                  src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
-                  alt="INTUA" 
-                  className="w-10 h-10 object-cover rounded-lg group-hover:scale-110 transition-transform opacity-80"
-                  referrerPolicy="no-referrer"
-                />
+                <div className="p-1 border-thin rounded-lg overflow-hidden">
+                  <img 
+                    src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
+                    alt="INTUA" 
+                    className="w-10 h-10 object-cover rounded-md grayscale group-hover:grayscale-0 transition-all"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <div className="hidden sm:block text-left">
+                  <span className="block text-xs font-black uppercase tracking-[0.3em] text-white">INTUA</span>
+                  <span className="block text-[8px] uppercase tracking-widest text-accent">Maga das Escolhas</span>
+                </div>
               </button>
             </div>
 
             {/* Fixed Hamburger Menu */}
-            <div className="fixed top-6 right-6 z-[60]">
+            <div className="fixed top-8 right-8 z-[60]">
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-3 rounded-full transition-all glass border border-white/10 hover:bg-white/10 text-white shadow-xl"
+                className="p-4 border-thin hover:bg-white/5 text-white transition-all"
                 title="Menu"
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
 
@@ -417,7 +419,7 @@ export default function App() {
                   initial={{ opacity: 0, x: 300 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 300 }}
-                  className="fixed top-0 right-0 h-full w-80 z-50 shadow-2xl p-8 pt-24 glass-dark flex flex-col border-l border-white/5"
+                  className="fixed top-0 right-0 h-full w-80 z-50 shadow-2xl p-12 pt-32 bg-black border-l border-white/10 flex flex-col"
                 >
                   <div className="flex flex-col gap-8 flex-grow overflow-y-auto pr-2 custom-scrollbar">
                     {/* Theme Selector */}
@@ -584,7 +586,7 @@ export default function App() {
                 <motion.h1 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className={`serif text-4xl md:text-6xl font-bold tracking-tighter mb-3 md:mb-4 bg-clip-text text-transparent bg-gradient-to-b ${currentTheme === 'dark' ? 'from-white to-white/40' : 'from-slate-950 to-slate-600'}`}
+                  className="serif text-5xl md:text-8xl font-light tracking-tighter mb-4 text-white"
                 >
                   INTUA
                 </motion.h1>
@@ -592,7 +594,7 @@ export default function App() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className={`max-w-lg mx-auto leading-relaxed font-medium text-sm md:text-base px-4 ${currentTheme === 'dark' ? 'text-slate-200 opacity-90' : 'text-slate-800'}`}
+                  className="max-w-lg mx-auto leading-relaxed font-light text-base md:text-xl px-4 opacity-40"
                 >
                   A sabedoria milenar do Tarô traduzida para o seu momento presente. 
                   Encontre clareza em suas escolhas.
@@ -608,33 +610,31 @@ export default function App() {
                   >
                     <button
                       onClick={() => navigate('/pt/home/tarot')}
-                      className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] glass transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden hover:border-accent hover:shadow-2xl mystic-glow"
+                      className="p-8 border-thin transition-all text-left flex flex-col gap-6 group relative overflow-hidden hover:bg-white/5"
                     >
-                      <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-accent/20 text-accent w-fit group-hover:scale-110 transition-transform">
-                        <MessageSquare size={20} className="md:w-6 md:h-6" />
+                      <div className="p-3 border-thin text-accent w-fit group-hover:bg-accent group-hover:text-black transition-all">
+                        <MessageSquare size={20} />
                       </div>
-                      <div>
-                        <h3 className="text-base md:text-lg font-black mb-1 md:mb-1.5">Orientação Completa</h3>
-                        <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Uma leitura profunda com dois caminhos para sua decisão.</p>
-                      </div>
-                      <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <MessageSquare size={60} className="md:w-[80px] md:h-[80px]" />
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-light serif">Tarô das Escolhas</h3>
+                        <p className="text-xs opacity-40 uppercase tracking-widest leading-relaxed">
+                          Uma tiragem profunda para analisar dois caminhos e suas consequências.
+                        </p>
                       </div>
                     </button>
 
                     <button
                       onClick={() => navigate('/pt/home/yesno')}
-                      className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] glass transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden hover:border-accent hover:shadow-2xl mystic-glow"
+                      className="p-8 border-thin transition-all text-left flex flex-col gap-6 group relative overflow-hidden hover:bg-white/5"
                     >
-                      <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-accent/20 text-accent w-fit group-hover:scale-110 transition-transform">
-                        <HelpCircle size={20} className="md:w-6 md:h-6" />
+                      <div className="p-3 border-thin text-accent w-fit group-hover:bg-accent group-hover:text-black transition-all">
+                        <HelpCircle size={20} />
                       </div>
-                      <div>
-                        <h3 className="text-base md:text-lg font-black mb-1 md:mb-1.5">Sim ou Não</h3>
-                        <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Uma resposta rápida e direta para perguntas pontuais.</p>
-                      </div>
-                      <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <HelpCircle size={60} className="md:w-[80px] md:h-[80px]" />
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-light serif">Sim ou Não</h3>
+                        <p className="text-xs opacity-40 uppercase tracking-widest leading-relaxed">
+                          Uma resposta direta e objetiva para questões imediatas.
+                        </p>
                       </div>
                     </button>
 
@@ -728,12 +728,12 @@ export default function App() {
                             onChange={(e) => setQuestion(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={mode === 'tarot' ? "Sobre qual decisão você precisa de clareza hoje?" : "Faça uma pergunta de Sim ou Não..."}
-                            className="w-full h-48 px-8 py-8 rounded-[2.5rem] glass border-2 border-white/10 shadow-2xl outline-none transition-all resize-none text-xl leading-relaxed placeholder:opacity-40 font-medium focus:border-accent/40 focus:bg-white/5 text-white"
+                            className="w-full h-48 px-8 py-8 border-thin bg-transparent outline-none transition-all resize-none text-2xl leading-relaxed placeholder:opacity-20 font-light focus:border-accent text-white"
                             required
                           />
-                        <div className="absolute bottom-8 right-8 flex items-center gap-3 text-accent/40 group-focus-within:text-accent transition-colors">
-                          <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">CTRL + ENTER para enviar</span>
-                          <Search size={28} />
+                        <div className="absolute bottom-8 right-8 flex items-center gap-4 text-accent/20 group-focus-within:text-accent transition-colors">
+                          <span className="text-[9px] uppercase tracking-widest hidden sm:block">CTRL + ENTER para enviar</span>
+                          <Search size={24} />
                         </div>
                       </div>
                       {error && (
@@ -800,13 +800,13 @@ export default function App() {
                         <motion.div 
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full"
+                          className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full"
                         >
-                          <section className="md:col-span-2 text-center space-y-4 max-w-2xl mx-auto mb-8">
-                            <h2 className="serif text-3xl md:text-4xl font-bold text-accent tracking-tighter">{result.card_name}</h2>
-                            <p className={`text-lg leading-relaxed italic font-medium opacity-90 ${currentTheme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{result.card_meaning}</p>
-                            <div className="h-1 w-32 bg-accent/30 mx-auto rounded-full" />
-                            <p className="text-lg leading-relaxed font-medium">{result.guidance}</p>
+                          <section className="md:col-span-2 text-center space-y-6 max-w-2xl mx-auto mb-12">
+                            <h2 className="serif text-4xl md:text-5xl font-light text-accent tracking-tighter uppercase">{result.card_name}</h2>
+                            <p className="text-xl leading-relaxed italic font-light opacity-60 text-white">{result.card_meaning}</p>
+                            <div className="h-px w-24 bg-accent/20 mx-auto" />
+                            <p className="text-xl font-light leading-relaxed">{result.guidance}</p>
                           </section>
 
                           <div className="md:col-span-2 text-center mb-4">
@@ -817,19 +817,19 @@ export default function App() {
 
                             <div 
                               onClick={() => !selectedPath && setSelectedPath('A')}
-                              className={`transition-all duration-700 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] glass shadow-2xl space-y-4 flex flex-col ${!selectedPath ? 'cursor-pointer hover:border-accent hover:shadow-accent/20' : ''} ${selectedPath === 'A' ? 'border-accent ring-8 ring-accent/10 mystic-glow' : 'border-white/10 opacity-95 hover:opacity-100'} ${selectedPath === 'B' ? 'hidden md:flex opacity-10 grayscale pointer-events-none' : ''}`}
+                              className={`transition-all duration-700 p-8 md:p-12 border-thin shadow-2xl space-y-6 flex flex-col ${!selectedPath ? 'cursor-pointer hover:bg-white/5' : ''} ${selectedPath === 'A' ? 'border-accent bg-accent/5' : 'opacity-95 hover:opacity-100'} ${selectedPath === 'B' ? 'hidden md:flex opacity-10 grayscale pointer-events-none' : ''}`}
                             >
-                              <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-accent">{result.path_a_label}</h4>
-                              <p className="font-bold text-xl leading-tight">{result.path_a}</p>
-                              <div className="pt-4 border-t-2 border-accent/10">
-                                <p className={`text-[8px] uppercase tracking-[0.15em] mb-2 font-black ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>O QUE PODE ACONTECER</p>
-                                <p className={`text-base font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>{result.outcome_a}</p>
+                              <h4 className="text-[9px] uppercase tracking-[0.3em] font-black text-accent">{result.path_a_label}</h4>
+                              <p className="font-light text-2xl serif leading-tight">{result.path_a}</p>
+                              <div className="pt-6 border-t border-white/10">
+                                <p className="text-[8px] uppercase tracking-widest mb-3 font-black text-accent/40">O QUE PODE ACONTECER</p>
+                                <p className="text-lg font-light leading-relaxed text-white/80">{result.outcome_a}</p>
                               </div>
                             {selectedPath === 'A' && (
                               <motion.div 
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="pt-4 mt-4 border-t-2 border-accent/20 text-accent font-bold italic leading-relaxed text-lg"
+                                className="pt-6 mt-6 border-t border-accent/20 text-accent font-light serif italic leading-relaxed text-xl"
                               >
                                 {result.detailed_guidance_a}
                               </motion.div>
@@ -837,7 +837,7 @@ export default function App() {
                             {!selectedPath && (
                               <button 
                                 onClick={() => setSelectedPath('A')}
-                                className="mt-auto w-full py-4 bg-accent text-white rounded-xl shadow-xl hover:bg-accent/90 transition-all font-black uppercase text-[10px] tracking-[0.15em]"
+                                className="mt-auto w-full py-5 border-thin text-accent hover:bg-accent hover:text-black transition-all font-black uppercase text-[9px] tracking-[0.2em]"
                               >
                                 Escolher este caminho
                               </button>
@@ -846,18 +846,18 @@ export default function App() {
 
                             <div 
                               onClick={() => !selectedPath && setSelectedPath('B')}
-                              className={`transition-all duration-700 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] glass shadow-2xl space-y-4 flex flex-col ${!selectedPath ? 'cursor-pointer hover:border-accent hover:shadow-accent/20' : ''} ${selectedPath === 'B' ? 'border-accent ring-8 ring-accent/10 mystic-glow' : 'border-white/10 opacity-95 hover:opacity-100'} ${selectedPath === 'A' ? 'hidden md:flex opacity-10 grayscale pointer-events-none' : ''}`}>
-                              <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-accent">{result.path_b_label}</h4>
-                              <p className="font-bold text-xl leading-tight">{result.path_b}</p>
-                              <div className="pt-4 border-t-2 border-accent/10">
-                                <p className={`text-[8px] uppercase tracking-[0.15em] mb-2 font-black ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>O QUE PODE ACONTECER</p>
-                                <p className={`text-base font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>{result.outcome_b}</p>
+                              className={`transition-all duration-700 p-8 md:p-12 border-thin shadow-2xl space-y-6 flex flex-col ${!selectedPath ? 'cursor-pointer hover:bg-white/5' : ''} ${selectedPath === 'B' ? 'border-accent bg-accent/5' : 'opacity-95 hover:opacity-100'} ${selectedPath === 'A' ? 'hidden md:flex opacity-10 grayscale pointer-events-none' : ''}`}>
+                              <h4 className="text-[9px] uppercase tracking-[0.3em] font-black text-accent">{result.path_b_label}</h4>
+                              <p className="font-light text-2xl serif leading-tight">{result.path_b}</p>
+                              <div className="pt-6 border-t border-white/10">
+                                <p className="text-[8px] uppercase tracking-widest mb-3 font-black text-accent/40">O QUE PODE ACONTECER</p>
+                                <p className="text-lg font-light leading-relaxed text-white/80">{result.outcome_b}</p>
                               </div>
                             {selectedPath === 'B' && (
                               <motion.div 
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="pt-4 mt-4 border-t-2 border-accent/20 text-accent font-bold italic leading-relaxed text-lg"
+                                className="pt-6 mt-6 border-t border-accent/20 text-accent font-light serif italic leading-relaxed text-xl"
                               >
                                 {result.detailed_guidance_b}
                               </motion.div>
@@ -865,7 +865,7 @@ export default function App() {
                             {!selectedPath && (
                               <button 
                                 onClick={() => setSelectedPath('B')}
-                                className="mt-auto w-full py-4 bg-accent text-white rounded-xl shadow-xl hover:bg-accent/90 transition-all font-black uppercase text-[10px] tracking-[0.15em]"
+                                className="mt-auto w-full py-5 border-thin text-accent hover:bg-accent hover:text-black transition-all font-black uppercase text-[9px] tracking-[0.2em]"
                               >
                                 Escolher este caminho
                               </button>
@@ -916,20 +916,20 @@ export default function App() {
                         <motion.div 
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="w-full p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] glass shadow-2xl text-center space-y-8 border border-white/10 mystic-glow"
+                          className="w-full p-12 md:p-16 border-thin bg-black shadow-2xl text-center space-y-10"
                         >
                           <div className="space-y-4">
-                            <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-accent">A RESPOSTA É</h4>
-                            <div className={`text-6xl md:text-7xl font-black serif tracking-tighter ${yesNoResult.answer === 'Sim' ? 'text-emerald-500' : yesNoResult.answer === 'Não' ? 'text-rose-500' : 'text-accent'}`}>
+                            <h4 className="text-[9px] uppercase tracking-[0.4em] font-black text-accent">A RESPOSTA É</h4>
+                            <div className={`text-7xl md:text-9xl font-light serif tracking-tighter ${yesNoResult.answer === 'Sim' ? 'text-white' : yesNoResult.answer === 'Não' ? 'text-accent' : 'text-accent'}`}>
                               {yesNoResult.answer}
                             </div>
                           </div>
 
-                          <div className="space-y-6">
-                            <h3 className="text-2xl md:text-3xl font-bold text-accent tracking-tight">{yesNoResult.card_name}</h3>
-                            <p className="text-lg md:text-xl leading-relaxed font-medium opacity-90">{yesNoResult.reasoning}</p>
-                            <div className="h-1 w-32 bg-accent/30 mx-auto rounded-full" />
-                            <p className={`text-lg italic font-bold ${currentTheme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{yesNoResult.guidance}</p>
+                          <div className="space-y-8">
+                            <h3 className="text-3xl md:text-4xl font-light text-accent tracking-widest uppercase serif">{yesNoResult.card_name}</h3>
+                            <p className="text-xl md:text-2xl leading-relaxed font-light opacity-60">{yesNoResult.reasoning}</p>
+                            <div className="h-px w-24 bg-accent/20 mx-auto" />
+                            <p className="text-xl italic font-light serif text-white">{yesNoResult.guidance}</p>
                           </div>
 
                           <div className="pt-8 border-t-2 border-accent/10">
@@ -949,8 +949,8 @@ export default function App() {
                 </AnimatePresence>
               </main>
 
-              <footer className={`w-full py-8 text-center transition-opacity duration-700 ${currentTheme === 'dark' ? 'text-white/40' : 'text-black/40'}`}>
-                <p className="text-[9px] font-black tracking-[0.5em] uppercase">
+              <footer className="w-full py-12 text-center">
+                <p className="text-[8px] font-black tracking-[0.6em] uppercase opacity-20">
                   © Maga Das Escolhas. Todos os direitos reservados.
                 </p>
               </footer>
