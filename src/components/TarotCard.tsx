@@ -37,7 +37,7 @@ export function TarotCard({ name, isRevealed, onClick }: TarotCardProps) {
 
   return (
     <div 
-      className="relative w-48 h-72 cursor-pointer perspective-1000"
+      className="relative w-56 h-80 cursor-pointer perspective-1000"
       onClick={onClick}
     >
       <motion.div
@@ -46,44 +46,44 @@ export function TarotCard({ name, isRevealed, onClick }: TarotCardProps) {
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
         {/* Back of the card */}
-        <div className="absolute inset-0 backface-hidden bg-black rounded-2xl border-thin shadow-2xl flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-2 border-thin border-accent/10 rounded-xl" />
-          <div className="absolute inset-4 border-[0.5px] border-accent/5 rounded-lg" />
+        <div className="absolute inset-0 backface-hidden bg-black rounded-[2.5rem] border-2 border-accent/30 shadow-2xl flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-2 border border-accent/10 rounded-[2rem]" />
+          <div className="absolute inset-4 border-[0.5px] border-accent/5 rounded-[1.5rem]" />
           
           {/* Corner accents */}
-          <div className="absolute top-3 left-3 w-4 h-4 border-t border-l border-accent/30" />
-          <div className="absolute top-3 right-3 w-4 h-4 border-t border-r border-accent/30" />
-          <div className="absolute bottom-3 left-3 w-4 h-4 border-b border-l border-accent/30" />
-          <div className="absolute bottom-3 right-3 w-4 h-4 border-b border-r border-accent/30" />
+          <div className="absolute top-6 left-6 w-8 h-8 border-t-2 border-l-2 border-accent/40 rounded-tl-xl" />
+          <div className="absolute top-6 right-6 w-8 h-8 border-t-2 border-r-2 border-accent/40 rounded-tr-xl" />
+          <div className="absolute bottom-6 left-6 w-8 h-8 border-b-2 border-l-2 border-accent/40 rounded-bl-xl" />
+          <div className="absolute bottom-6 right-6 w-8 h-8 border-b-2 border-r-2 border-accent/40 rounded-br-xl" />
 
-          <div className="relative z-10 flex flex-col items-center gap-4">
-            <div className="w-16 h-16 p-1 border-thin rounded-lg overflow-hidden flex items-center justify-center">
+          <div className="relative z-10 flex flex-col items-center gap-6">
+            <div className="w-20 h-20 p-2 border-2 border-accent/20 rounded-2xl overflow-hidden flex items-center justify-center bg-white/5 backdrop-blur-sm">
               <img 
                 src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
                 alt="INTUA Logo" 
-                className="w-full h-full object-cover rounded-md grayscale opacity-40"
+                className="w-full h-full object-cover rounded-xl opacity-40"
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="flex flex-col items-center">
-              <span className="serif text-xl font-light tracking-[0.4em] text-accent">INTUA</span>
-              <span className="text-[8px] uppercase tracking-widest text-white/20">Maga das Escolhas</span>
+            <div className="flex flex-col items-center gap-1">
+              <span className="serif text-2xl font-bold tracking-[0.4em] text-accent">INTUA</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Maga das Escolhas</span>
             </div>
           </div>
         </div>
 
         {/* Front of the card */}
-        <div className="absolute inset-0 backface-hidden bg-black rounded-2xl border-thin shadow-2xl overflow-hidden rotate-y-180">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/80 z-10" />
+        <div className="absolute inset-0 backface-hidden bg-black rounded-[2.5rem] border-2 border-accent/40 shadow-2xl overflow-hidden rotate-y-180">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90 z-10" />
           <img 
             src={imageUrl} 
             alt={name}
-            className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+            className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute bottom-6 left-0 right-0 z-20 text-center px-4">
-            <span className="serif text-lg font-light text-white tracking-[0.2em] uppercase">{name}</span>
-            <div className="w-8 h-px bg-accent/40 mx-auto mt-2" />
+          <div className="absolute bottom-8 left-0 right-0 z-20 text-center px-6">
+            <span className="serif text-xl font-bold text-white tracking-[0.2em] uppercase">{name}</span>
+            <div className="w-12 h-1 bg-accent mx-auto mt-3 rounded-full shadow-[0_0_15px_rgba(139,92,246,0.5)]" />
           </div>
         </div>
       </motion.div>

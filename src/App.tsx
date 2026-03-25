@@ -225,29 +225,37 @@ export default function App() {
     <div className={`min-h-screen flex flex-col items-center transition-all duration-700 ${themeClasses} selection:bg-accent/30 overflow-x-hidden`}>
       {/* Global Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
       </div>
 
       <Routes>
         <Route path="/" element={<Navigate to="/pt/login" replace />} />
         <Route path="/pt" element={<Navigate to="/pt/login" replace />} />
         <Route path="/pt/login" element={
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black overflow-hidden">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-50 overflow-hidden">
+            {/* Soft Background Texture */}
+            <div className="absolute inset-0 opacity-40">
+              <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_20%,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
+              <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_80%,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
+            </div>
+
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
               className="relative z-10 w-full max-w-5xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
             >
               <div className="space-y-12">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 text-accent">
-                    <Sparkles size={16} />
-                    <span className="text-xs font-black uppercase tracking-[0.4em]">Maga das Escolhas</span>
+                    <Sparkles size={20} />
+                    <span className="text-sm font-black uppercase tracking-[0.4em]">Maga das Escolhas</span>
                   </div>
-                  <h1 className="title-xl text-white">INTUA</h1>
-                  <p className="text-xl font-light leading-relaxed max-w-md opacity-60">
-                    A sabedoria milenar do Tarô traduzida para o seu momento presente. Encontre clareza em suas escolhas através de uma experiência minimalista e focada.
+                  <h1 className="title-xl text-slate-950">INTUA</h1>
+                  <p className="text-xl font-medium leading-relaxed max-w-md text-slate-600">
+                    A sabedoria milenar do Tarô traduzida para o seu momento presente. Encontre clareza em suas escolhas através de uma experiência envolvente e intuitiva.
                   </p>
                 </div>
                 
@@ -255,55 +263,55 @@ export default function App() {
                 
                 <div className="hidden lg:grid grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <h4 className="text-accent text-[10px] font-black uppercase tracking-widest">Clareza</h4>
-                    <p className="text-xs opacity-50">Respostas diretas para as suas dúvidas mais profundas.</p>
+                    <h4 className="text-accent text-xs font-black uppercase tracking-widest">Clareza</h4>
+                    <p className="text-sm text-slate-500">Respostas diretas para as suas dúvidas mais profundas.</p>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="text-accent text-[10px] font-black uppercase tracking-widest">Intuição</h4>
-                    <p className="text-xs opacity-50">Conecte-se com o seu eu interior através dos arcanos.</p>
+                    <h4 className="text-accent text-xs font-black uppercase tracking-widest">Intuição</h4>
+                    <p className="text-sm text-slate-500">Conecte-se com o seu eu interior através dos arcanos.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-10 border-thin bg-black/40 space-y-8">
+              <div className="p-10 md:p-12 rounded-[3rem] bg-white shadow-2xl border border-slate-200 space-y-8">
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-light serif">Começar Jornada</h2>
-                  <p className="text-xs opacity-40 uppercase tracking-widest">Identifique-se para o oráculo</p>
+                  <h2 className="text-3xl font-bold serif text-slate-900">Começar Jornada</h2>
+                  <p className="text-xs font-bold text-accent uppercase tracking-widest">Identifique-se para o oráculo</p>
                 </div>
 
                 <form onSubmit={handleLeadSubmit} className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <label className="text-[9px] uppercase tracking-widest opacity-40">Nome</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nome</label>
                       <input 
                         required
                         type="text"
                         placeholder="Como deseja ser chamado?"
-                        className="w-full bg-transparent border-b border-white/10 py-3 outline-none transition-all focus:border-accent text-lg font-light"
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent focus:bg-white text-slate-900 font-bold"
                         value={leadFormData.name}
                         onChange={e => setLeadFormData(prev => ({ ...prev, name: e.target.value }))}
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[9px] uppercase tracking-widest opacity-40">E-mail</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">E-mail</label>
                       <input 
                         required
                         type="email"
                         placeholder="seu@email.com"
-                        className="w-full bg-transparent border-b border-white/10 py-3 outline-none transition-all focus:border-accent text-lg font-light"
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent focus:bg-white text-slate-900 font-bold"
                         value={leadFormData.email}
                         onChange={e => setLeadFormData(prev => ({ ...prev, email: e.target.value }))}
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[9px] uppercase tracking-widest opacity-40">WhatsApp</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">WhatsApp</label>
                       <input 
                         required
                         type="tel"
                         placeholder="(00) 00000-0000"
-                        className="w-full bg-transparent border-b border-white/10 py-3 outline-none transition-all focus:border-accent text-lg font-light"
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent focus:bg-white text-slate-900 font-bold"
                         value={leadFormData.whatsapp}
                         onChange={e => setLeadFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
                       />
@@ -312,7 +320,7 @@ export default function App() {
 
                   <button 
                     type="submit"
-                    className="w-full py-5 bg-accent text-black font-black uppercase tracking-[0.2em] hover:bg-white transition-all text-xs"
+                    className="w-full py-5 bg-accent text-white rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-accent/90 transition-all shadow-xl shadow-accent/20"
                   >
                     Entrar no Oráculo
                   </button>
@@ -386,17 +394,17 @@ export default function App() {
                 className="group flex items-center gap-4 transition-all"
                 title="Início"
               >
-                <div className="p-1 border-thin rounded-lg overflow-hidden">
+                <div className="p-1 border-2 border-accent/30 rounded-2xl overflow-hidden bg-white/5 backdrop-blur-md">
                   <img 
                     src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
                     alt="INTUA" 
-                    className="w-10 h-10 object-cover rounded-md grayscale group-hover:grayscale-0 transition-all"
+                    className="w-12 h-12 object-cover rounded-xl group-hover:scale-110 transition-transform"
                     referrerPolicy="no-referrer"
                   />
                 </div>
                 <div className="hidden sm:block text-left">
-                  <span className="block text-xs font-black uppercase tracking-[0.3em] text-white">INTUA</span>
-                  <span className="block text-[8px] uppercase tracking-widest text-accent">Maga das Escolhas</span>
+                  <span className="block text-sm font-black uppercase tracking-[0.3em] text-white">INTUA</span>
+                  <span className="block text-[10px] uppercase tracking-widest text-accent font-bold">Maga das Escolhas</span>
                 </div>
               </button>
             </div>
@@ -405,10 +413,10 @@ export default function App() {
             <div className="fixed top-8 right-8 z-[60]">
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-4 border-thin hover:bg-white/5 text-white transition-all"
+                className="p-4 rounded-full border-2 border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md shadow-xl"
                 title="Menu"
               >
-                {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
 
@@ -610,14 +618,14 @@ export default function App() {
                   >
                     <button
                       onClick={() => navigate('/pt/home/tarot')}
-                      className="p-8 border-thin transition-all text-left flex flex-col gap-6 group relative overflow-hidden hover:bg-white/5"
+                      className="p-8 rounded-[2.5rem] glass transition-all text-left flex flex-col gap-6 group relative overflow-hidden hover:border-accent hover:shadow-2xl mystic-glow"
                     >
-                      <div className="p-3 border-thin text-accent w-fit group-hover:bg-accent group-hover:text-black transition-all">
-                        <MessageSquare size={20} />
+                      <div className="p-4 rounded-2xl bg-accent/20 text-accent w-fit group-hover:scale-110 transition-transform">
+                        <MessageSquare size={24} />
                       </div>
                       <div className="space-y-2">
-                        <h3 className="text-2xl font-light serif">Tarô das Escolhas</h3>
-                        <p className="text-xs opacity-40 uppercase tracking-widest leading-relaxed">
+                        <h3 className="text-2xl font-bold serif text-white">Tarô das Escolhas</h3>
+                        <p className="text-xs opacity-60 font-bold uppercase tracking-widest leading-relaxed">
                           Uma tiragem profunda para analisar dois caminhos e suas consequências.
                         </p>
                       </div>
@@ -625,14 +633,14 @@ export default function App() {
 
                     <button
                       onClick={() => navigate('/pt/home/yesno')}
-                      className="p-8 border-thin transition-all text-left flex flex-col gap-6 group relative overflow-hidden hover:bg-white/5"
+                      className="p-8 rounded-[2.5rem] glass transition-all text-left flex flex-col gap-6 group relative overflow-hidden hover:border-accent hover:shadow-2xl mystic-glow"
                     >
-                      <div className="p-3 border-thin text-accent w-fit group-hover:bg-accent group-hover:text-black transition-all">
-                        <HelpCircle size={20} />
+                      <div className="p-4 rounded-2xl bg-accent/20 text-accent w-fit group-hover:scale-110 transition-transform">
+                        <HelpCircle size={24} />
                       </div>
                       <div className="space-y-2">
-                        <h3 className="text-2xl font-light serif">Sim ou Não</h3>
-                        <p className="text-xs opacity-40 uppercase tracking-widest leading-relaxed">
+                        <h3 className="text-2xl font-bold serif text-white">Sim ou Não</h3>
+                        <p className="text-xs opacity-60 font-bold uppercase tracking-widest leading-relaxed">
                           Uma resposta direta e objetiva para questões imediatas.
                         </p>
                       </div>
@@ -728,12 +736,12 @@ export default function App() {
                             onChange={(e) => setQuestion(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={mode === 'tarot' ? "Sobre qual decisão você precisa de clareza hoje?" : "Faça uma pergunta de Sim ou Não..."}
-                            className="w-full h-48 px-8 py-8 border-thin bg-transparent outline-none transition-all resize-none text-2xl leading-relaxed placeholder:opacity-20 font-light focus:border-accent text-white"
+                            className="w-full h-48 px-8 py-8 rounded-[3rem] glass border-2 border-white/10 outline-none transition-all resize-none text-2xl leading-relaxed placeholder:opacity-40 font-medium focus:border-accent/40 focus:bg-white/5 text-white"
                             required
                           />
-                        <div className="absolute bottom-8 right-8 flex items-center gap-4 text-accent/20 group-focus-within:text-accent transition-colors">
-                          <span className="text-[9px] uppercase tracking-widest hidden sm:block">CTRL + ENTER para enviar</span>
-                          <Search size={24} />
+                        <div className="absolute bottom-8 right-10 flex items-center gap-4 text-accent/40 group-focus-within:text-accent transition-colors">
+                          <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">CTRL + ENTER para enviar</span>
+                          <Search size={32} />
                         </div>
                       </div>
                       {error && (

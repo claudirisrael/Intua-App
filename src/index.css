@@ -5,11 +5,11 @@
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Inter", sans-serif;
   
-  --color-paper: #000000;
+  --color-paper: #0a0a0a;
   --color-ink: #ffffff;
-  --color-accent: #c5a059; /* Champagne Gold */
-  --color-muted: #1a1a1a;
-  --color-border: rgba(197, 160, 89, 0.2);
+  --color-accent: #8b5cf6; /* Vibrant Violet */
+  --color-accent-soft: rgba(139, 92, 246, 0.1);
+  --color-border: rgba(139, 92, 246, 0.3);
 }
 
 html {
@@ -21,37 +21,41 @@ body {
   background-color: var(--color-paper);
   color: var(--color-ink);
   overflow-x: hidden;
-  letter-spacing: -0.01em;
 }
 
 .glass {
-  background: #0a0a0a;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
   border: 1px solid var(--color-border);
+  border-radius: 2rem;
 }
 
 .glass-dark {
-  background: #000000;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mystic-glow {
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.2);
 }
 
 .text-mystic {
-  color: var(--color-ink);
+  background: linear-gradient(to bottom, #ffffff 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .border-thin {
-  border: 0.5px solid var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: 1.5rem;
 }
 
 .title-xl {
   font-family: var(--font-serif);
-  font-size: clamp(4rem, 12vw, 8rem);
-  line-height: 0.85;
-  letter-spacing: -0.04em;
-  font-weight: 300;
+  font-size: clamp(3rem, 10vw, 6rem);
+  line-height: 1;
+  font-weight: 700;
 }
 
 .app-container {
