@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "HistoryEntry": {
+      "title": "History Entry",
+      "description": "A single entry in the tarot reading history",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user ID of the owner" },
+        "question": { "type": "string", "description": "The question asked" },
+        "topic": { "type": "string", "description": "The topic of the reading" },
+        "timestamp": { "type": "string", "description": "The timestamp of the reading" },
+        "type": { "type": "string", "description": "The type of reading" },
+        "result": { "type": "string", "description": "The result of the reading" }
+      },
+      "required": ["uid", "question", "topic", "timestamp", "type", "result"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "A captured lead",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the lead" },
+        "email": { "type": "string", "description": "The email of the lead" },
+        "phone": { "type": "string", "description": "The phone number of the lead" },
+        "timestamp": { "type": "string", "description": "The timestamp of the capture" }
+      },
+      "required": ["name", "email", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/history/{historyId}": {
+      "schema": "HistoryEntry",
+      "description": "Tarot reading history"
+    },
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Captured leads"
+    }
+  }
+}

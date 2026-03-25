@@ -1,430 +1,453 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Routes, Route, Navigate, useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef, ErrorInfo, ReactNode, Component } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Search, RotateCcw, ArrowRight, Loader2, Sparkles, Sun, Moon, HelpCircle, MessageSquare, Menu, X, History, Clock, Trash2, ChevronDown, Monitor, Calendar, Lock, Crown, Heart, Briefcase, User, TrendingUp, BarChart3, PieChart as PieChartIcon, Mail, Phone, LogOut } from "lucide-react";
-import { TarotCard } from "./components/TarotCard";
+import { MessageSquare, HelpCircle, Heart, Briefcase, Moon, Sun, LogOut, Trash2, ChevronLeft, ChevronRight, Home, Plus } from "lucide-react";
 import { HomeContent } from "./components/HomeContent";
-import { getTarotGuidance, getYesNoGuidance, getTopic } from "./services/ai";
-import { TarotResponse, YesNoResponse, HistoryEntry, ThemeMode, Lead, AppMode } from "./types";
+import { Login } from "./components/Login";
+import { getTarotGuidance, getYesNoGuidance, getRelationshipGuidance, getCareerGuidance, getTopic } from "./services/ai";
+import { TarotResponse, YesNoResponse, RelationshipResponse, CareerResponse, HistoryEntry, ThemeMode, Lead, AppMode } from "./types";
+import { auth, db, onAuthStateChanged, signInWithGoogle, signOut, handleFirestoreError, OperationType } from "./firebase";
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, onSnapshot, orderBy, limit, writeBatch } from "firebase/firestore";
+
+// Error Boundary Component
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: any;
+}
+
+class AppErrorBoundary extends React.Component<any, any> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: any): any {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-6 text-center bg-paper">
+          <div className="max-w-md space-y-4">
+            <h1 className="text-2xl font-serif text-ink">Ops! Algo deu errado.</h1>
+            <p className="text-sm text-ink/60">Ocorreu um erro inesperado. Por favor, recarregue a página.</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-accent text-paper rounded-full text-sm font-bold"
+            >
+              Recarregar
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [user, setUser] = useState<any>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('theme');
+    return (saved as ThemeMode) || 'dark';
+  });
+  const [mode, setMode] = useState<AppMode>('tarot');
   const [question, setQuestion] = useState("");
-  const [mode, setMode] = useState<AppMode>('menu');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TarotResponse | null>(null);
   const [yesNoResult, setYesNoResult] = useState<YesNoResponse | null>(null);
+  const [relationshipResult, setRelationshipResult] = useState<RelationshipResponse | null>(null);
+  const [careerResult, setCareerResult] = useState<CareerResponse | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [selectedPath, setSelectedPath] = useState<'A' | 'B' | null>(null);
-  const [leadInfo, setLeadInfo] = useState<Lead | null>(null);
-  const [leadFormData, setLeadFormData] = useState({ name: '', email: '', whatsapp: '' });
-  const [theme, setTheme] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem('intua-theme');
-    return (saved as ThemeMode) || 'system';
-  });
-  const [error, setError] = useState<string | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [lockedMessage, setLockedMessage] = useState<{ title: string } | null>(null);
+  const [lead, setLead] = useState<Lead | null>(() => {
+    const saved = localStorage.getItem('lead');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [leadFormData, setLeadFormData] = useState({ name: "", email: "", whatsapp: "" });
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const isLoginPage = location.pathname === '/pt/login' || location.pathname === '/pt' || location.pathname === '/';
-
-  // Fetch history from backend
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await fetch('/api/history');
-        if (response.ok) {
-          const data = await response.json();
-          setHistory(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch history:", error);
-      }
-    };
-    fetchHistory();
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.classList.toggle('light', theme === 'light');
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
-    // Check for lead info
-    const savedLead = localStorage.getItem('intua-user-info');
-    if (savedLead) {
-      setLeadInfo(JSON.parse(savedLead));
-      if (isLoginPage) {
-        navigate('/pt/home');
-      }
-    } else {
-      if (!isLoginPage) {
-        navigate('/pt/login');
-      }
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsAuthReady(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthReady || !user) {
+      setHistory([]);
+      return;
     }
-  }, [isLoginPage, navigate]);
+
+    const q = query(
+      collection(db, "history"),
+      where("uid", "==", user.uid),
+      orderBy("timestamp", "desc"),
+      limit(20)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as HistoryEntry[];
+      setHistory(data);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "history");
+    });
+
+    return () => unsubscribe();
+  }, [isAuthReady, user]);
 
   const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newLead: Lead = {
-      ...leadFormData,
-      timestamp: Date.now()
+    const newLead = { 
+      ...leadFormData, 
+      timestamp: new Date().toISOString() 
     };
     
     try {
-      const response = await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newLead)
-      });
-      if (response.ok) {
-        localStorage.setItem('intua-user-info', JSON.stringify(newLead));
-        setLeadInfo(newLead);
-        navigate('/pt/home');
-      } else {
-        // Fallback navigation if API fails
-        localStorage.setItem('intua-user-info', JSON.stringify(newLead));
-        setLeadInfo(newLead);
-        navigate('/pt/home');
-      }
+      await addDoc(collection(db, "leads"), newLead);
+      setLead(newLead as any);
+      localStorage.setItem('lead', JSON.stringify(newLead));
+      navigate("/pt/home");
     } catch (error) {
-      console.error("Failed to save lead:", error);
-      localStorage.setItem('intua-user-info', JSON.stringify(newLead));
-      setLeadInfo(newLead);
-      navigate('/pt/home');
+      handleFirestoreError(error, OperationType.CREATE, "leads");
     }
   };
 
-  // Theme logic
-  useEffect(() => {
-    const root = document.documentElement;
-    const applyTheme = (mode: 'light' | 'dark') => {
-      root.classList.toggle('dark', mode === 'dark');
-    };
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      applyTheme(systemTheme);
-
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = (e: MediaQueryListEvent) => applyTheme(e.matches ? 'dark' : 'light');
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    } else {
-      applyTheme(theme);
-    }
-    localStorage.setItem('intua-theme', theme);
-  }, [theme]);
-
-  // History persistence and cleanup
-  const saveToHistory = async (type: 'tarot' | 'yesno', q: string, topic: string, res: TarotResponse | YesNoResponse) => {
-    const newEntry = {
-      timestamp: Date.now(),
-      type,
-      question: q,
-      topic,
-      result: res
-    };
-    
-    try {
-      const response = await fetch('/api/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newEntry)
-      });
-      if (response.ok) {
-        const savedEntry = await response.json();
-        setHistory(prev => [savedEntry, ...prev]);
-      }
-    } catch (error) {
-      console.error("Failed to save history:", error);
-    }
+  const logout = async () => {
+    await signOut();
+    setLead(null);
+    localStorage.removeItem('lead');
+    navigate("/pt/login");
   };
 
-  const deleteHistoryEntry = (id: string) => {
-    setHistory(prev => prev.filter(e => e.id !== id));
-  };
-
-  const clearHistory = async () => {
-    if (confirm("Tem certeza que deseja limpar todo o histórico?")) {
-      try {
-        const response = await fetch('/api/history', { method: 'DELETE' });
-        if (response.ok) {
-          setHistory([]);
-        }
-      } catch (error) {
-        console.error("Failed to clear history:", error);
-      }
-    }
-  };
-
-  const handleDraw = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleDraw = async () => {
     if (!question.trim()) return;
-
     setLoading(true);
-    setResult(null);
-    setYesNoResult(null);
+    setError(null);
     setIsRevealed(false);
     setSelectedPath(null);
-    setError(null);
 
     try {
-      const topic = await getTopic(question);
-      if (mode === 'tarot') {
-        const data = await getTarotGuidance(question);
-        if (data.is_relevant) {
-          setResult(data);
-          saveToHistory('tarot', question, topic, data);
-        } else {
-          setError("A Maga não encontrou uma pergunta clara para orientar. Por favor, compartilhe uma dúvida ou dilema real.");
-        }
-      } else {
-        const data = await getYesNoGuidance(question);
-        if (data.is_relevant) {
-          setYesNoResult(data);
-          saveToHistory('yesno', question, topic, data);
-        } else {
-          setError("A Maga não encontrou uma pergunta clara para orientar. Por favor, compartilhe uma dúvida ou dilema real.");
-        }
+      let res;
+      if (mode === 'tarot') res = await getTarotGuidance(question);
+      else if (mode === 'yesno') res = await getYesNoGuidance(question);
+      else if (mode === 'relationship') res = await getRelationshipGuidance(question);
+      else res = await getCareerGuidance(question);
+
+      if (!res.is_relevant) {
+        setLockedMessage({ title: "O Oráculo não compreendeu sua intenção. Por favor, reformule sua pergunta com mais clareza e profundidade." });
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error("Erro ao buscar orientação:", error);
-      setError("As energias estão instáveis no momento. Tente novamente em alguns instantes.");
+
+      if (mode === 'tarot') setResult(res as TarotResponse);
+      else if (mode === 'yesno') setYesNoResult(res as YesNoResponse);
+      else if (mode === 'relationship') setRelationshipResult(res as RelationshipResponse);
+      else setCareerResult(res as CareerResponse);
+
+      const topic = await getTopic(question);
+      const historyEntry = {
+        uid: user?.uid || "anonymous",
+        question,
+        topic,
+        timestamp: new Date().toISOString(),
+        type: mode,
+        result: res
+      };
+
+      try {
+        await addDoc(collection(db, "history"), historyEntry);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.CREATE, "history");
+      }
+
+      setIsRevealed(true);
+    } catch (err: any) {
+      setError(err.message || "Ocorreu um erro ao consultar o Oráculo.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.ctrlKey && e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleDraw();
     }
   };
 
+  const clearHistory = async () => {
+    if (!user) return;
+    try {
+      const q = query(collection(db, "history"), where("uid", "==", user.uid));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, "history");
+    }
+  };
+
   const reset = () => {
-    setQuestion("");
     setResult(null);
     setYesNoResult(null);
+    setRelationshipResult(null);
+    setCareerResult(null);
+    setQuestion("");
     setIsRevealed(false);
     setSelectedPath(null);
     setError(null);
+    setLockedMessage(null);
     setMode('menu');
-    navigate('/pt/home');
-  };
-
-  const logout = () => {
-    localStorage.removeItem('intua-user-info');
-    setLeadInfo(null);
     setIsMenuOpen(false);
-    navigate('/pt/login');
+    navigate("/pt/home");
   };
 
-  const currentTheme = theme === 'system' 
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : theme;
+  const currentTheme = theme === 'dark' ? 'dark' : 'light';
 
-  const themeClasses = currentTheme === 'dark'
-    ? 'bg-slate-950 text-white' 
-    : 'bg-slate-50 text-slate-900';
+  if (!lead && location.pathname !== "/pt/login") {
+    return <Navigate to="/pt/login" replace />;
+  }
 
   return (
-    <div className={`min-h-screen flex flex-col items-center transition-all duration-700 ${themeClasses} selection:bg-accent/30 overflow-x-hidden`}>
-      {/* Global Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
-      </div>
+    <AppErrorBoundary>
+      <div className={theme === 'dark' ? 'dark' : theme === 'light' ? 'light' : ''}>
+        {/* Atmospheric Background */}
+        <div className="atmosphere" />
 
-      <Routes>
-        <Route path="/" element={<Navigate to="/pt/login" replace />} />
-        <Route path="/pt" element={<Navigate to="/pt/login" replace />} />
-        <Route path="/pt/login" element={
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#020205] overflow-hidden">
-            {/* Mystic Background Elements */}
-            <div className="absolute inset-0">
-              <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px] animate-pulse" />
-              <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px] animate-pulse" />
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
-            </div>
+        <Routes>
+          <Route path="/pt/login" element={
+            <Login 
+              leadFormData={leadFormData}
+              setLeadFormData={setLeadFormData}
+              handleLeadSubmit={handleLeadSubmit}
+              theme={theme}
+              setTheme={setTheme}
+            />
+          } />
+          <Route path="*" element={
+            <div className={`split-layout relative z-10 transition-all duration-500 ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+              {/* Mobile Header */}
+              <header className="lg:hidden fixed top-0 left-0 right-0 h-16 glass z-[60] flex items-center justify-between px-6">
+                <button 
+                  onClick={reset}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  <img 
+                    src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
+                    alt="INTUA" 
+                    className="w-6 h-6 object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <span className="text-lg font-light tracking-[0.2em]">INTUA</span>
+                </button>
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center bg-paper/50 cursor-pointer"
+                >
+                  <div className="w-5 h-4 flex flex-col justify-between">
+                    <span className={`h-0.5 w-full bg-ink transition-all ${isMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
+                    <span className={`h-0.5 w-full bg-ink transition-all ${isMenuOpen ? 'opacity-0' : ''}`} />
+                    <span className={`h-0.5 w-full bg-ink transition-all ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+                  </div>
+                </button>
+              </header>
 
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative z-10 w-full max-w-5xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
-            >
-              <div className="space-y-12">
-                <div className="space-y-8">
-                  <div className="flex items-center gap-6">
-                    <div className="p-2 glass-dark rounded-2xl border-accent/30">
-                      <img 
-                        src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
-                        alt="INTUA Logo" 
-                        className="w-16 h-16 object-cover rounded-xl"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-accent">
-                        <Sparkles size={16} />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em]">Maga das Escolhas</span>
+              {/* Mobile Menu Overlay */}
+              <AnimatePresence>
+                {isMenuOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[55]"
+                  />
+                )}
+              </AnimatePresence>
+
+              {/* Left Pane: Navigation & Input */}
+              <aside className={`left-pane ${isMenuOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'} ${isSidebarCollapsed ? 'w-[80px]' : 'w-[450px]'} transition-all duration-500`}>
+                {/* Mobile Drag Handle */}
+                <div className="lg:hidden w-12 h-1 bg-border rounded-full mx-auto mb-6 shrink-0" />
+                
+                <div className="flex flex-col h-full">
+                  <header className={`mb-12 hidden lg:flex items-center justify-between ${isSidebarCollapsed ? 'flex-col gap-8' : ''}`}>
+                    <button 
+                      onClick={reset}
+                      className="group flex items-center gap-4 transition-all cursor-pointer"
+                    >
+                      <div className="w-12 h-12 rounded-full border border-border flex items-center justify-center overflow-hidden bg-paper/50 backdrop-blur-md shrink-0">
+                        <img 
+                          src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
+                          alt="INTUA" 
+                          className="w-8 h-8 object-cover opacity-80 group-hover:scale-110 transition-transform"
+                          referrerPolicy="no-referrer"
+                        />
                       </div>
-                      <h1 className="text-5xl font-bold serif text-white tracking-tight">INTUA</h1>
+                      {!isSidebarCollapsed && (
+                        <div className="text-left">
+                          <h1 className="text-2xl font-light tracking-[0.2em] text-ink">INTUA</h1>
+                          <span className="small-caps !text-[8px]">Maga das Escolhas</span>
+                        </div>
+                      )}
+                    </button>
+
+                    <button 
+                      onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                      className="hidden lg:flex w-8 h-8 rounded-full border border-border items-center justify-center hover:bg-ink hover:text-paper transition-all cursor-pointer"
+                    >
+                      {isSidebarCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                    </button>
+                  </header>
+
+                  <nav className={`flex-grow space-y-8 overflow-y-auto no-scrollbar py-4 ${isSidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
+                    <div className="w-full">
+                      <button
+                        onClick={reset}
+                        className={`w-full py-4 px-6 rounded-2xl transition-all flex items-center gap-4 border border-border bg-paper/50 hover:bg-ink hover:text-paper hover:border-ink group cursor-pointer shadow-sm ${isSidebarCollapsed ? 'lg:justify-center lg:px-0 lg:w-12 lg:h-12 lg:rounded-full lg:mx-auto' : ''}`}
+                        title="Nova Tiragem"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-paper/20 transition-colors shrink-0">
+                          <Plus size={16} className="text-accent group-hover:text-paper" />
+                        </div>
+                        <span className={`text-sm font-bold tracking-tight ${isSidebarCollapsed ? 'lg:hidden' : ''}`}>Nova Tiragem</span>
+                      </button>
                     </div>
-                  </div>
-                  
-                  <p className="text-xl font-light leading-relaxed max-w-md text-white/70">
-                    A sabedoria milenar do Tarô traduzida para o seu momento presente. Encontre clareza em suas escolhas através de uma experiência envolvente e intuitiva.
-                  </p>
+
+                    {history.length > 0 && !isSidebarCollapsed && (
+                      <div className="space-y-4 hidden lg:block">
+                        <div className="flex items-center justify-between">
+                          <p className="small-caps">Histórico</p>
+                          <button onClick={clearHistory} className="text-rose-500 hover:text-rose-400 transition-colors cursor-pointer">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {history.slice(0, 5).map((entry) => (
+                            <button
+                              key={entry.id}
+                              onClick={() => {
+                                setMode(entry.type);
+                                navigate(`/pt/home/${entry.type}`);
+                                setIsMenuOpen(false);
+                                if (entry.type === 'tarot') setResult(entry.result as TarotResponse);
+                                else if (entry.type === 'yesno') setYesNoResult(entry.result as YesNoResponse);
+                                else if (entry.type === 'relationship') setRelationshipResult(entry.result as RelationshipResponse);
+                                else if (entry.type === 'career') setCareerResult(entry.result as CareerResponse);
+                                setQuestion(entry.question);
+                                setIsRevealed(true);
+                              }}
+                              className="w-full p-3 rounded-xl hover:bg-ink hover:text-paper transition-all text-left border border-transparent hover:border-ink cursor-pointer"
+                            >
+                              <p className="text-[10px] font-bold opacity-40 mb-1">{new Date(entry.timestamp).toLocaleDateString()}</p>
+                              <p className="text-xs font-medium line-clamp-1 opacity-80">{entry.question}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </nav>
+
+                  <footer className={`mt-auto pt-8 border-t border-border flex items-center justify-between ${isSidebarCollapsed ? 'lg:flex-col lg:gap-6' : ''}`}>
+                    <div className={`flex items-center gap-3 ${isSidebarCollapsed ? 'lg:flex-col' : ''}`}>
+                      <button 
+                        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                        className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-ink hover:text-paper transition-all cursor-pointer"
+                        title="Alternar Tema"
+                      >
+                        {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+                      </button>
+                      <button 
+                        onClick={logout}
+                        className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
+                        title="Sair"
+                      >
+                        <LogOut size={16} />
+                      </button>
+                    </div>
+                    {!isSidebarCollapsed && (
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold opacity-40">© 2026 INTUA</p>
+                        <p className="text-[8px] uppercase tracking-widest opacity-20">Maga das Escolhas</p>
+                      </div>
+                    )}
+                  </footer>
                 </div>
-                
-                <div className="hidden lg:block w-32 h-px bg-accent/30" />
-                
-                <div className="hidden lg:grid grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <h4 className="text-accent text-[10px] font-black uppercase tracking-widest">Clareza</h4>
-                    <p className="text-sm text-white/40">Respostas diretas para as suas dúvidas mais profundas.</p>
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="text-accent text-[10px] font-black uppercase tracking-widest">Intuição</h4>
-                    <p className="text-sm text-white/40">Conecte-se com o seu eu interior através dos arcanos.</p>
-                  </div>
-                </div>
-              </div>
+              </aside>
 
-              <div className="p-10 md:p-12 glass-dark border-accent/20 space-y-8 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-                
-                <div className="space-y-2">
-                  <h2 className="text-3xl font-bold serif text-white">Começar Jornada</h2>
-                  <p className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">Identifique-se para o oráculo</p>
-                </div>
-
-                <form onSubmit={handleLeadSubmit} className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Nome</label>
-                      <input 
-                        required
-                        type="text"
-                        placeholder="Como deseja ser chamado?"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent/50 focus:bg-white/10 text-white font-medium placeholder:text-white/10"
-                        value={leadFormData.name}
-                        onChange={e => setLeadFormData(prev => ({ ...prev, name: e.target.value }))}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">E-mail</label>
-                      <input 
-                        required
-                        type="email"
-                        placeholder="seu@email.com"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent/50 focus:bg-white/10 text-white font-medium placeholder:text-white/10"
-                        value={leadFormData.email}
-                        onChange={e => setLeadFormData(prev => ({ ...prev, email: e.target.value }))}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">WhatsApp</label>
-                      <input 
-                        required
-                        type="tel"
-                        placeholder="(00) 00000-0000"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none transition-all focus:border-accent/50 focus:bg-white/10 text-white font-medium placeholder:text-white/10"
-                        value={leadFormData.whatsapp}
-                        onChange={e => setLeadFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit"
-                    className="w-full py-5 bg-accent text-white rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-accent/80 transition-all shadow-2xl shadow-accent/20 relative group overflow-hidden"
-                  >
-                    <span className="relative z-10">Entrar no Oráculo</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          </div>
-        } />
-        <Route path="/pt/home" element={
-          <HomeContent 
-            mode={mode}
-            setMode={setMode}
-            question={question}
-            setQuestion={setQuestion}
-            loading={loading}
-            result={result}
-            setResult={setResult}
-            yesNoResult={yesNoResult}
-            setYesNoResult={setYesNoResult}
-            isRevealed={isRevealed}
-            setIsRevealed={setIsRevealed}
-            selectedPath={selectedPath}
-            setSelectedPath={setSelectedPath}
-            error={error}
-            setError={setError}
-            isMenuOpen={isMenuOpen}
-            setIsMenuOpen={setIsMenuOpen}
-            history={history}
-            theme={theme}
-            setTheme={setTheme}
-            isThemeDropdownOpen={isThemeDropdownOpen}
-            setIsThemeDropdownOpen={setIsThemeDropdownOpen}
-            lockedMessage={lockedMessage}
-            setLockedMessage={setLockedMessage}
-            textareaRef={textareaRef}
-            handleDraw={handleDraw}
-            handleKeyDown={handleKeyDown}
-            reset={reset}
-            logout={logout}
-            clearHistory={clearHistory}
-            deleteHistoryEntry={deleteHistoryEntry}
-            currentTheme={currentTheme}
-          />
-        } />
-        <Route path="/pt/home/:type" element={
-          <HomeContent 
-            mode={mode}
-            setMode={setMode}
-            question={question}
-            setQuestion={setQuestion}
-            loading={loading}
-            result={result}
-            setResult={setResult}
-            yesNoResult={yesNoResult}
-            setYesNoResult={setYesNoResult}
-            isRevealed={isRevealed}
-            setIsRevealed={setIsRevealed}
-            selectedPath={selectedPath}
-            setSelectedPath={setSelectedPath}
-            error={error}
-            setError={setError}
-            isMenuOpen={isMenuOpen}
-            setIsMenuOpen={setIsMenuOpen}
-            history={history}
-            theme={theme}
-            setTheme={setTheme}
-            isThemeDropdownOpen={isThemeDropdownOpen}
-            setIsThemeDropdownOpen={setIsThemeDropdownOpen}
-            lockedMessage={lockedMessage}
-            setLockedMessage={setLockedMessage}
-            textareaRef={textareaRef}
-            handleDraw={handleDraw}
-            handleKeyDown={handleKeyDown}
-            reset={reset}
-            logout={logout}
-            clearHistory={clearHistory}
-            deleteHistoryEntry={deleteHistoryEntry}
-            currentTheme={currentTheme}
-          />
-        } />
-        <Route path="*" element={<Navigate to="/pt/home" replace />} />
-      </Routes>
-    </div>
+              {/* Right Pane: Content & Results */}
+              <main className="right-pane">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/pt/home" replace />} />
+                  <Route path="/pt/home" element={
+                    <HomeContent 
+                      mode={mode} setMode={setMode} question={question} setQuestion={setQuestion}
+                      loading={loading} result={result} setResult={setResult}
+                      yesNoResult={yesNoResult} setYesNoResult={setYesNoResult}
+                      relationshipResult={relationshipResult} setRelationshipResult={setRelationshipResult}
+                      careerResult={careerResult} setCareerResult={setCareerResult}
+                      isRevealed={isRevealed} setIsRevealed={setIsRevealed}
+                      selectedPath={selectedPath} setSelectedPath={setSelectedPath}
+                      error={error} setError={setError} setLockedMessage={setLockedMessage}
+                      textareaRef={textareaRef} handleDraw={handleDraw} handleKeyDown={handleKeyDown}
+                      reset={reset} currentTheme={currentTheme}
+                    />
+                  } />
+                  <Route path="/pt/home/:type" element={
+                    <HomeContent 
+                      mode={mode} setMode={setMode} question={question} setQuestion={setQuestion}
+                      loading={loading} result={result} setResult={setResult}
+                      yesNoResult={yesNoResult} setYesNoResult={setYesNoResult}
+                      relationshipResult={relationshipResult} setRelationshipResult={setRelationshipResult}
+                      careerResult={careerResult} setCareerResult={setCareerResult}
+                      isRevealed={isRevealed} setIsRevealed={setIsRevealed}
+                      selectedPath={selectedPath} setSelectedPath={setSelectedPath}
+                      error={error} setError={setError} setLockedMessage={setLockedMessage}
+                      textareaRef={textareaRef} handleDraw={handleDraw} handleKeyDown={handleKeyDown}
+                      reset={reset} currentTheme={currentTheme}
+                    />
+                  } />
+                  <Route path="*" element={<Navigate to="/pt/home" replace />} />
+                </Routes>
+              </main>
+            </div>
+          } />
+        </Routes>
+      </div>
+    </AppErrorBoundary>
   );
 }
-
