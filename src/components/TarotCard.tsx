@@ -46,33 +46,47 @@ export function TarotCard({ name, isRevealed, onClick }: TarotCardProps) {
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
         {/* Back of the card */}
-        <div className="absolute inset-0 backface-hidden bg-slate-950 rounded-2xl border-4 border-accent shadow-2xl flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent via-transparent to-transparent" />
-          <div className="relative z-10 flex flex-col items-center gap-4 text-accent">
-            <div className="w-16 h-16 p-1 rounded-xl bg-white/5 border-2 border-accent/40 shadow-2xl overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 backface-hidden bg-slate-950 rounded-2xl border-2 border-accent/40 shadow-2xl flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent/30 via-transparent to-transparent" />
+          
+          {/* Decorative pattern */}
+          <div className="absolute inset-2 border border-accent/20 rounded-xl" />
+          <div className="absolute inset-4 border-[0.5px] border-accent/10 rounded-lg" />
+          
+          {/* Corner accents */}
+          <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-accent/40 rounded-tl-sm" />
+          <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-accent/40 rounded-tr-sm" />
+          <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-accent/40 rounded-bl-sm" />
+          <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-accent/40 rounded-br-sm" />
+
+          <div className="relative z-10 flex flex-col items-center gap-4">
+            <div className="w-16 h-16 p-1 rounded-2xl glass border border-accent/30 shadow-2xl overflow-hidden flex items-center justify-center">
               <img 
                 src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
                 alt="INTUA Logo" 
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-xl opacity-80"
                 referrerPolicy="no-referrer"
               />
             </div>
-            <Sparkles size={24} className="drop-shadow-glow" />
-            <span className="serif text-2xl font-bold tracking-[0.2em] text-accent drop-shadow-sm">INTUA</span>
+            <div className="flex flex-col items-center">
+              <Sparkles size={16} className="text-accent/60 animate-pulse mb-1" />
+              <span className="serif text-xl font-bold tracking-[0.3em] text-mystic">INTUA</span>
+            </div>
           </div>
-          {/* Decorative pattern */}
-          <div className="absolute inset-4 border-2 border-accent/30 rounded-xl" />
-          <div className="absolute inset-2 border border-accent/20 rounded-2xl" />
         </div>
 
         {/* Front of the card */}
-        <div className="absolute inset-0 backface-hidden bg-white rounded-2xl border-4 border-accent shadow-xl overflow-hidden rotate-y-180">
+        <div className="absolute inset-0 backface-hidden bg-slate-900 rounded-2xl border-2 border-accent/40 shadow-2xl overflow-hidden rotate-y-180">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
           <img 
             src={imageUrl} 
             alt={name}
-            className="w-full h-full object-contain"
+            className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
+          <div className="absolute bottom-4 left-0 right-0 z-20 text-center">
+            <span className="serif text-lg font-bold text-white tracking-widest drop-shadow-lg">{name}</span>
+          </div>
         </div>
       </motion.div>
     </div>

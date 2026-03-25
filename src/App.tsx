@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Routes, Route, Navigate, useNavigate, useParams, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, RotateCcw, ArrowRight, Loader2, Sparkles, Sun, Moon, HelpCircle, MessageSquare, Menu, X, History, Clock, Trash2, ChevronDown, Monitor, Calendar, Lock, Crown, Heart, Briefcase, User, TrendingUp, BarChart3, PieChart as PieChartIcon, Mail, Phone, LogOut } from "lucide-react";
 import { TarotCard } from "./components/TarotCard";
@@ -8,14 +9,15 @@ import { TarotResponse, YesNoResponse, HistoryEntry, ThemeMode, Lead } from "./t
 type AppMode = 'menu' | 'tarot' | 'yesno';
 
 export default function App() {
-  const [mode, setMode] = useState<AppMode>('menu');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [question, setQuestion] = useState("");
+  const [mode, setMode] = useState<AppMode>('menu');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TarotResponse | null>(null);
   const [yesNoResult, setYesNoResult] = useState<YesNoResponse | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [selectedPath, setSelectedPath] = useState<'A' | 'B' | null>(null);
-  const [showLeadForm, setShowLeadForm] = useState(false);
   const [leadInfo, setLeadInfo] = useState<Lead | null>(null);
   const [leadFormData, setLeadFormData] = useState({ name: '', email: '', whatsapp: '' });
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -26,9 +28,10 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [lockedMessage, setLockedMessage] = useState<{ title: string } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const isLoginPage = location.pathname === '/pt/login' || location.pathname === '/pt' || location.pathname === '/';
 
   // Fetch history from backend
   useEffect(() => {
@@ -49,10 +52,15 @@ export default function App() {
     const savedLead = localStorage.getItem('intua-user-info');
     if (savedLead) {
       setLeadInfo(JSON.parse(savedLead));
+      if (isLoginPage) {
+        navigate('/pt/home');
+      }
     } else {
-      setShowLeadForm(true);
+      if (!isLoginPage) {
+        navigate('/pt/login');
+      }
     }
-  }, []);
+  }, [isLoginPage, navigate]);
 
   const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,14 +78,13 @@ export default function App() {
       if (response.ok) {
         localStorage.setItem('intua-user-info', JSON.stringify(newLead));
         setLeadInfo(newLead);
-        setShowLeadForm(false);
+        navigate('/pt/home');
       }
     } catch (error) {
       console.error("Failed to save lead:", error);
-      // Still allow them to use the app even if backend fails, but save locally
       localStorage.setItem('intua-user-info', JSON.stringify(newLead));
       setLeadInfo(newLead);
-      setShowLeadForm(false);
+      navigate('/pt/home');
     }
   };
 
@@ -128,7 +135,6 @@ export default function App() {
   };
 
   const deleteHistoryEntry = (id: string) => {
-    // For now, we only support clearing all history via backend
     setHistory(prev => prev.filter(e => e.id !== id));
   };
 
@@ -197,756 +203,759 @@ export default function App() {
     setSelectedPath(null);
     setError(null);
     setMode('menu');
+    navigate('/pt/home');
   };
 
-  const themeClasses = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    ? 'bg-[#020617] text-white' 
-    : 'bg-[#f8fafc] text-slate-900';
+  const logout = () => {
+    localStorage.removeItem('intua-user-info');
+    setLeadInfo(null);
+    setIsMenuOpen(false);
+    navigate('/pt/login');
+  };
 
   const currentTheme = theme === 'system' 
     ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
     : theme;
 
+  const themeClasses = currentTheme === 'dark'
+    ? 'bg-slate-950 text-white' 
+    : 'bg-slate-50 text-slate-900';
+
   return (
-    <div 
-      className={`min-h-screen flex flex-col items-center transition-all duration-700 ${themeClasses} selection:bg-accent/30`}
-    >
-      {/* Locked Feature Modal */}
-      <AnimatePresence>
-        {lockedMessage && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-md"
-            onClick={() => setLockedMessage(null)}
-          >
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`max-w-md w-full p-10 rounded-[3rem] border-2 shadow-2xl text-center space-y-6 ${currentTheme === 'dark' ? 'bg-slate-900 border-accent/30' : 'bg-white border-accent/20'}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="w-20 h-20 bg-accent/20 rounded-3xl flex items-center justify-center mx-auto text-accent">
-                <Clock size={40} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-black serif tracking-tight">{lockedMessage.title}</h3>
-                <p className="text-sm uppercase tracking-[0.3em] font-black text-slate-400">
-                  Em Breve
-                </p>
-              </div>
-              <p className={`text-lg font-medium leading-relaxed opacity-80 ${currentTheme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>
-                Esta tiragem especializada está sendo preparada pela Maga e estará disponível em breve para todos os usuários.
-              </p>
-              <button 
-                onClick={() => setLockedMessage(null)}
-                className="w-full py-4 bg-accent text-white rounded-2xl font-black uppercase tracking-widest hover:bg-accent/90 transition-all shadow-xl shadow-accent/20"
-              >
-                Entendido
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Top Left Logo */}
-      <div className="fixed top-6 left-6 z-[60]">
-        <button 
-          onClick={reset}
-          className={`group p-1 rounded-xl transition-all border-2 shadow-2xl overflow-hidden ${currentTheme === 'dark' ? 'bg-white/5 border-accent/40 hover:border-accent' : 'bg-white border-accent/30 hover:border-accent'}`}
-          title="Início"
-        >
-          <img 
-            src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
-            alt="INTUA" 
-            className="w-10 h-10 object-cover rounded-lg group-hover:scale-110 transition-transform"
-            referrerPolicy="no-referrer"
-          />
-        </button>
+    <div className={`min-h-screen flex flex-col items-center transition-all duration-700 ${themeClasses} selection:bg-accent/30 overflow-x-hidden`}>
+      {/* Global Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className={`absolute -top-48 -right-48 w-[800px] h-[800px] rounded-full blur-[160px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-accent/10' : 'bg-accent/5'}`} />
+        <div className={`absolute -bottom-48 -left-48 w-[800px] h-[800px] rounded-full blur-[160px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-mystic-purple/20' : 'bg-mystic-purple/10'}`} />
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full blur-[200px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-mystic-indigo/10' : 'bg-mystic-indigo/5'}`} />
       </div>
 
-      {/* Fixed Hamburger Menu */}
-      <div className="fixed top-6 right-6 z-[60]">
-        <button 
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className={`p-3 rounded-full transition-all border-2 backdrop-blur-md ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-black/5 border-black/10 hover:bg-black/10 text-black'}`}
-          title="Menu"
-        >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Menu Overlay */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: 300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 300 }}
-            className={`fixed top-0 right-0 h-full w-80 z-50 shadow-2xl border-l p-8 pt-24 backdrop-blur-xl flex flex-col ${currentTheme === 'dark' ? 'bg-slate-950/90 border-white/10' : 'bg-white/90 border-slate-200'}`}
-          >
-            <div className="flex flex-col gap-8 flex-grow overflow-y-auto pr-2 custom-scrollbar">
-              {/* Theme Selector */}
-              <div className="space-y-4">
-                <h3 className={`text-[10px] uppercase tracking-[0.3em] font-black ${currentTheme === 'dark' ? 'text-white/40' : 'text-slate-900/40'}`}>Aparência</h3>
-                <div className="relative">
-                  <button 
-                    onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'}`}
-                  >
-                    <div className="flex items-center gap-3 font-bold">
-                      {theme === 'dark' && <Moon size={18} />}
-                      {theme === 'light' && <Sun size={18} />}
-                      {theme === 'system' && <Monitor size={18} />}
-                      <span className="capitalize">{theme === 'system' ? 'Sistema' : theme === 'dark' ? 'Escuro' : 'Claro'}</span>
-                    </div>
-                    <ChevronDown size={18} className={`transition-transform ${isThemeDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  <AnimatePresence>
-                    {isThemeDropdownOpen && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className={`absolute top-full left-0 w-full mt-2 rounded-2xl border-2 shadow-2xl z-10 overflow-hidden ${currentTheme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200'}`}
-                      >
-                        {(['light', 'dark', 'system'] as ThemeMode[]).map((m) => (
-                          <button
-                            key={m}
-                            onClick={() => {
-                              setTheme(m);
-                              setIsThemeDropdownOpen(false);
-                            }}
-                            className={`w-full flex items-center gap-3 p-4 hover:bg-accent hover:text-white transition-colors text-left font-bold ${theme === m ? 'text-accent' : ''}`}
-                          >
-                            {m === 'light' && <Sun size={18} />}
-                            {m === 'dark' && <Moon size={18} />}
-                            {m === 'system' && <Monitor size={18} />}
-                            <span className="capitalize">{m === 'system' ? 'Corresponder ao sistema' : m === 'dark' ? 'Escuro' : 'Claro'}</span>
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              {/* History Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className={`text-[10px] uppercase tracking-[0.3em] font-black ${currentTheme === 'dark' ? 'text-white/40' : 'text-slate-900/40'}`}>Histórico</h3>
-                  <div className="flex items-center gap-3">
-                    {history.length > 0 && (
-                      <button onClick={clearHistory} className="text-rose-500 hover:text-rose-400 transition-colors">
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {history.length === 0 ? (
-                    <div className="py-8 text-center opacity-30">
-                      <History size={32} className="mx-auto mb-2" />
-                      <p className="text-xs font-bold">Nenhuma consulta salva</p>
-                    </div>
-                  ) : (
-                    history.map((entry) => (
-                      <button
-                        key={entry.id}
-                        onClick={() => {
-                          if (entry.type === 'tarot') {
-                            setMode('tarot');
-                            setResult(entry.result as TarotResponse);
-                            setYesNoResult(null);
-                          } else {
-                            setMode('yesno');
-                            setYesNoResult(entry.result as YesNoResponse);
-                            setResult(null);
-                          }
-                          setQuestion(entry.question);
-                          setIsRevealed(true);
-                          setIsMenuOpen(false);
-                        }}
-                        className={`w-full p-4 rounded-2xl border-2 transition-all text-left group relative ${currentTheme === 'dark' ? 'bg-white/5 border-white/5 hover:border-accent/40' : 'bg-black/5 border-black/5 hover:border-accent/40'}`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[8px] uppercase tracking-widest font-black text-accent">
-                            {entry.type === 'tarot' ? 'Tarô' : 'Sim/Não'}
-                          </span>
-                          <span className="text-[8px] opacity-40 font-bold">
-                            {new Date(entry.timestamp).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-xs font-bold line-clamp-2 leading-relaxed opacity-80">{entry.question}</p>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteHistoryEntry(entry.id);
-                          }}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-rose-500 hover:scale-110 transition-all p-1"
-                        >
-                          <X size={12} />
-                        </button>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="h-px bg-accent/20 my-2" />
-
-              <button 
-                onClick={() => {
-                  reset();
-                  setIsMenuOpen(false);
-                }}
-                className={`flex items-center gap-4 text-lg font-bold hover:text-accent transition-colors mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}
-              >
-                <RotateCcw size={20} />
-                Reiniciar App
-              </button>
-
-              <button 
-                onClick={() => {
-                  localStorage.removeItem('intua-user-info');
-                  setLeadInfo(null);
-                  setShowLeadForm(true);
-                  setIsMenuOpen(false);
-                  reset();
-                }}
-                className={`flex items-center gap-4 text-lg font-bold hover:text-rose-500 transition-colors mb-8 ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}
-              >
-                <LogOut size={20} />
-                Sair
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Background Glows */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className={`absolute -top-48 -right-48 w-[600px] h-[600px] rounded-full blur-[160px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-accent/20' : 'bg-accent/10'}`} />
-        <div className={`absolute -bottom-48 -left-48 w-[600px] h-[600px] rounded-full blur-[160px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-indigo-500/20' : 'bg-indigo-500/10'}`} />
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[200px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-purple-900/10' : 'bg-purple-100/20'}`} />
-      </div>
-
-      <div className="w-full max-w-4xl px-4 py-8 md:py-24 flex-grow flex flex-col items-center relative z-10">
-        <header className="text-center mb-12 md:mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center gap-6 md:gap-8 mb-8 md:mb-10"
-          >
-            <div className={`p-1 md:p-1.5 rounded-[1.5rem] md:rounded-[2rem] border-4 transition-all shadow-[0_0_50px_rgba(var(--accent-rgb),0.2)] overflow-hidden ${currentTheme === 'dark' ? 'bg-white/5 border-accent/40' : 'bg-white border-accent/30'}`} style={{ width: '80px', height: '80px', minWidth: '80px', minHeight: '80px' }}>
+      <Routes>
+        <Route path="/" element={<Navigate to="/pt/login" replace />} />
+        <Route path="/pt" element={<Navigate to="/pt/login" replace />} />
+        <Route path="/pt/login" element={
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950 overflow-hidden">
+            {/* Immersive Background */}
+            <div className="absolute inset-0">
               <img 
-                src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
-                alt="INTUA Logo" 
-                className="w-full h-full object-cover rounded-[1rem] md:rounded-[1.5rem] scale-110"
+                src="https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2071&auto=format&fit=crop" 
+                alt="Mystical Night Sky" 
+                className="w-full h-full object-cover opacity-40 scale-110 animate-pulse-slow"
                 referrerPolicy="no-referrer"
               />
+              <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-transparent to-slate-950" />
+              <div className="absolute inset-0 bg-radial-gradient from-accent/5 to-transparent" />
             </div>
-            <div className="flex items-center gap-2 md:gap-3 text-accent">
-              <Sparkles size={16} className="animate-pulse" />
-              <span className="text-[10px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.4em] font-black">Maga das Escolhas</span>
-            </div>
-          </motion.div>
-          <motion.h1 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`serif text-4xl md:text-6xl font-bold tracking-tighter mb-3 md:mb-4 bg-clip-text text-transparent bg-gradient-to-b ${currentTheme === 'dark' ? 'from-white to-white/40' : 'from-slate-950 to-slate-600'}`}
-          >
-            INTUA
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className={`max-w-lg mx-auto leading-relaxed font-medium text-sm md:text-base px-4 ${currentTheme === 'dark' ? 'text-slate-200 opacity-90' : 'text-slate-800'}`}
-          >
-            A sabedoria milenar do Tarô traduzida para o seu momento presente. 
-            Encontre clareza em suas escolhas.
-          </motion.p>
-        </header>
 
+            {/* Floating Orbs */}
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-[120px] animate-float" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-900/20 rounded-full blur-[120px] animate-float-delayed" />
 
-        <main className="w-full flex flex-col items-center">
-          {mode === 'menu' && (
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 w-full max-w-4xl"
-            >
-              <button
-                onClick={() => setMode('tarot')}
-                className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent hover:bg-white/10' : 'bg-white border-slate-200 hover:border-accent hover:shadow-xl shadow-md'}`}
-              >
-                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-accent/20 text-accent w-fit group-hover:scale-110 transition-transform">
-                  <MessageSquare size={20} className="md:w-6 md:h-6" />
-                </div>
-                <div>
-                  <h3 className="text-base md:text-lg font-black mb-1 md:mb-1.5">Orientação Completa</h3>
-                  <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Uma leitura profunda com dois caminhos para sua decisão.</p>
-                </div>
-                <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <MessageSquare size={60} className="md:w-[80px] md:h-[80px]" />
-                </div>
-              </button>
-
-              <button
-                onClick={() => setMode('yesno')}
-                className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent hover:bg-white/10' : 'bg-white border-slate-200 hover:border-accent hover:shadow-xl shadow-md'}`}
-              >
-                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-accent/20 text-accent w-fit group-hover:scale-110 transition-transform">
-                  <HelpCircle size={20} className="md:w-6 md:h-6" />
-                </div>
-                <div>
-                  <h3 className="text-base md:text-lg font-black mb-1 md:mb-1.5">Sim ou Não</h3>
-                  <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Uma resposta rápida e direta para perguntas pontuais.</p>
-                </div>
-                <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <HelpCircle size={60} className="md:w-[80px] md:h-[80px]" />
-                </div>
-              </button>
-
-              <button
-                onClick={() => setLockedMessage({ title: 'Tiragem de Relacionamento' })}
-                className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden opacity-70 hover:opacity-100 ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent/40' : 'bg-white border-slate-200 hover:border-accent/40 shadow-md'}`}
-              >
-                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-slate-400/10 text-slate-400 w-fit group-hover:scale-110 transition-transform">
-                  <Heart size={20} className="md:w-6 md:h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base md:text-lg font-black">Relacionamento</h3>
-                    <Clock size={10} className="text-slate-400 md:w-3 md:h-3" />
-                  </div>
-                  <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Analise a conexão e o futuro entre duas pessoas.</p>
-                </div>
-                <div className="absolute top-2 right-2 md:top-2.5 md:right-2.5 text-[6px] md:text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Em Breve</div>
-              </button>
-
-              <button
-                onClick={() => setLockedMessage({ title: 'Tiragem de Carreira' })}
-                className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden opacity-70 hover:opacity-100 ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent/40' : 'bg-white border-slate-200 hover:border-accent/40 shadow-md'}`}
-              >
-                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-slate-400/10 text-slate-400 w-fit group-hover:scale-110 transition-transform">
-                  <Briefcase size={20} className="md:w-6 md:h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base md:text-lg font-black">Carreira & Finanças</h3>
-                    <Clock size={10} className="text-slate-400 md:w-3 md:h-3" />
-                  </div>
-                  <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Orientações estratégicas para sua vida profissional.</p>
-                </div>
-                <div className="absolute top-2 right-2 md:top-2.5 md:right-2.5 text-[6px] md:text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Em Breve</div>
-              </button>
-
-              <button
-                onClick={() => setLockedMessage({ title: 'Autoconhecimento' })}
-                className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden opacity-70 hover:opacity-100 ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent/40' : 'bg-white border-slate-200 hover:border-accent/40 shadow-md'}`}
-              >
-                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-slate-400/10 text-slate-400 w-fit group-hover:scale-110 transition-transform">
-                  <User size={20} className="md:w-6 md:h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base md:text-lg font-black">Autoconhecimento</h3>
-                    <Clock size={10} className="text-slate-400 md:w-3 md:h-3" />
-                  </div>
-                  <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Mergulhe em sua essência e descubra seu propósito.</p>
-                </div>
-                <div className="absolute top-2 right-2 md:top-2.5 md:right-2.5 text-[6px] md:text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Em Breve</div>
-              </button>
-
-              <button
-                onClick={() => setLockedMessage({ title: 'Tendências do Ano' })}
-                className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden opacity-70 hover:opacity-100 ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent/40' : 'bg-white border-slate-200 hover:border-accent/40 shadow-md'}`}
-              >
-                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-slate-400/10 text-slate-400 w-fit group-hover:scale-110 transition-transform">
-                  <TrendingUp size={20} className="md:w-6 md:h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base md:text-lg font-black">Tendências do Ano</h3>
-                    <Clock size={10} className="text-slate-400 md:w-3 md:h-3" />
-                  </div>
-                  <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Uma visão panorâmica dos seus próximos 12 meses.</p>
-                </div>
-                <div className="absolute top-2 right-2 md:top-2.5 md:right-2.5 text-[6px] md:text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Em Breve</div>
-              </button>
-            </motion.div>
-          )}
-
-          {(mode === 'tarot' || mode === 'yesno') && !result && !yesNoResult && !loading && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full max-w-xl space-y-8"
+              className="relative z-10 w-full max-w-lg px-6"
             >
-              <button 
-                onClick={() => setMode('menu')}
-                className="text-accent hover:underline text-sm font-black mb-4 flex items-center gap-2 uppercase tracking-widest"
-              >
-                ← Voltar ao menu
-              </button>
-              <form onSubmit={handleDraw} className="space-y-8">
-                <div className="relative group">
-                    <textarea
-                      ref={textareaRef}
-                      value={question}
-                      onChange={(e) => setQuestion(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder={mode === 'tarot' ? "Sobre qual decisão você precisa de clareza hoje?" : "Faça uma pergunta de Sim ou Não..."}
-                      className={`w-full h-40 px-8 py-6 rounded-3xl border-2 shadow-xl outline-none transition-all resize-none text-xl leading-relaxed placeholder:opacity-60 font-medium ${currentTheme === 'dark' ? 'bg-white/5 border-white/20 focus:ring-accent/40 focus:border-accent text-white' : 'bg-white border-slate-300 focus:ring-accent/20 focus:border-accent text-black'}`}
-                      required
-                    />
-                  <div className="absolute bottom-6 right-8 flex items-center gap-3 text-accent/40 group-focus-within:text-accent transition-colors">
-                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">CTRL + ENTER para enviar</span>
-                    <Search size={28} />
-                  </div>
-                </div>
-                {error && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: [0, -10, 10, -10, 10, 0] }}
-                    transition={{ duration: 0.5 }}
-                    className="text-rose-500 text-sm text-center font-bold bg-rose-500/10 p-6 rounded-3xl border border-rose-500/20 shadow-[0_0_30px_rgba(244,63,94,0.1)]"
-                  >
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <HelpCircle size={16} />
-                      <span className="uppercase tracking-widest text-[10px]">A Maga diz:</span>
-                    </div>
-                    {error}
-                  </motion.div>
-                )}
-                <button
-                  type="submit"
-                  disabled={!question.trim()}
-                  className="w-full py-5 bg-accent text-white rounded-full font-black tracking-[0.1em] uppercase hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xl shadow-accent/30 flex items-center justify-center gap-3 text-xl"
-                >
-                  {mode === 'tarot' ? 'Tirar uma Carta' : 'Obter Resposta'}
-                  <ArrowRight size={22} />
-                </button>
-              </form>
-            </motion.div>
-          )}
-
-          {loading && (
-            <div className="flex flex-col items-center gap-8 py-16">
-              <div className="relative">
-                <Loader2 className="animate-spin text-accent" size={80} />
-                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-accent/40 animate-pulse" size={32} />
-              </div>
-              <p className="serif italic text-3xl text-accent font-bold animate-pulse tracking-tight">Sintonizando sua intuição...</p>
-            </div>
-          )}
-
-          <AnimatePresence>
-            {result && (
-              <motion.div 
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full flex flex-col items-center gap-16"
-              >
-                <div className="flex flex-col items-center gap-6">
-                  <TarotCard 
-                    name={result.card_name} 
-                    isRevealed={isRevealed} 
-                    onClick={() => setIsRevealed(true)} 
-                  />
-                  {!isRevealed && (
-                    <motion.p 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-sm uppercase tracking-[0.3em] text-accent font-black animate-bounce"
-                    >
-                      Clique para revelar
-                    </motion.p>
-                  )}
-                </div>
-
-                {isRevealed && (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full"
-                  >
-                    <section className="md:col-span-2 text-center space-y-4 max-w-2xl mx-auto mb-8">
-                      <h2 className="serif text-3xl md:text-4xl font-bold text-accent tracking-tighter">{result.card_name}</h2>
-                      <p className={`text-lg leading-relaxed italic font-medium opacity-90 ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{result.card_meaning}</p>
-                      <div className="h-1 w-32 bg-accent/30 mx-auto rounded-full" />
-                      <p className="text-lg leading-relaxed font-medium">{result.guidance}</p>
-                    </section>
-
-                    <div className="md:col-span-2 text-center mb-4">
-                      <p className="serif text-2xl text-accent font-bold italic tracking-tight">
-                        "Escolha o caminho que mais ressoa agora."
-                      </p>
-                    </div>
-
-                      <div 
-                        onClick={() => !selectedPath && setSelectedPath('A')}
-                        className={`transition-all duration-700 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-2 shadow-2xl space-y-4 flex flex-col ${!selectedPath ? 'cursor-pointer' : ''} ${currentTheme === 'dark' ? 'bg-white/5' : 'bg-white'} ${selectedPath === 'A' ? 'border-accent ring-8 ring-accent/10' : 'border-accent/20 opacity-95 hover:opacity-100'} ${selectedPath === 'B' ? 'hidden md:flex opacity-10 grayscale pointer-events-none' : ''}`}
-                      >
-                        <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-accent">{result.path_a_label}</h4>
-                        <p className="font-bold text-xl leading-tight">{result.path_a}</p>
-                        <div className="pt-4 border-t-2 border-accent/10">
-                          <p className={`text-[8px] uppercase tracking-[0.15em] mb-2 font-black ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>O QUE PODE ACONTECER</p>
-                          <p className={`text-base font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>{result.outcome_a}</p>
-                        </div>
-                      {selectedPath === 'A' && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="pt-4 mt-4 border-t-2 border-accent/20 text-accent font-bold italic leading-relaxed text-lg"
-                        >
-                          {result.detailed_guidance_a}
-                        </motion.div>
-                      )}
-                      {!selectedPath && (
-                        <button 
-                          onClick={() => setSelectedPath('A')}
-                          className="mt-auto w-full py-4 bg-accent text-white rounded-xl shadow-xl hover:bg-accent/90 transition-all font-black uppercase text-[10px] tracking-[0.15em]"
-                        >
-                          Escolher este caminho
-                        </button>
-                      )}
-                    </div>
-
-                      <div 
-                        onClick={() => !selectedPath && setSelectedPath('B')}
-                        className={`transition-all duration-700 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-2 shadow-2xl space-y-4 flex flex-col ${!selectedPath ? 'cursor-pointer' : ''} ${currentTheme === 'dark' ? 'bg-white/5' : 'bg-white'} ${selectedPath === 'B' ? 'border-accent ring-8 ring-accent/10' : 'border-accent/20 opacity-95 hover:opacity-100'} ${selectedPath === 'A' ? 'hidden md:flex opacity-10 grayscale pointer-events-none' : ''}`}>
-                        <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-accent">{result.path_b_label}</h4>
-                        <p className="font-bold text-xl leading-tight">{result.path_b}</p>
-                        <div className="pt-4 border-t-2 border-accent/10">
-                          <p className={`text-[8px] uppercase tracking-[0.15em] mb-2 font-black ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>O QUE PODE ACONTECER</p>
-                          <p className={`text-base font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>{result.outcome_b}</p>
-                        </div>
-                      {selectedPath === 'B' && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="pt-4 mt-4 border-t-2 border-accent/20 text-accent font-bold italic leading-relaxed text-lg"
-                        >
-                          {result.detailed_guidance_b}
-                        </motion.div>
-                      )}
-                      {!selectedPath && (
-                        <button 
-                          onClick={() => setSelectedPath('B')}
-                          className="mt-auto w-full py-4 bg-accent text-white rounded-xl shadow-xl hover:bg-accent/90 transition-all font-black uppercase text-[10px] tracking-[0.15em]"
-                        >
-                          Escolher este caminho
-                        </button>
-                      )}
-                    </div>
-
-                    <footer className="md:col-span-2 text-center pt-8 space-y-8">
-                      <p className="serif italic text-2xl text-accent font-bold tracking-tight">{result.closing_message}</p>
-                      <div className="flex flex-col items-center gap-6">
-                        <button
-                          onClick={reset}
-                          className="inline-flex items-center gap-3 text-accent hover:scale-105 transition-all text-sm uppercase tracking-[0.3em] font-black border-b-2 border-accent pb-1"
-                        >
-                          <RotateCcw size={20} />
-                          Nova Consulta
-                        </button>
-                      </div>
-                    </footer>
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
-
-            {yesNoResult && (
-              <motion.div 
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full flex flex-col items-center gap-12 max-w-2xl"
-              >
-                <div className="flex flex-col items-center gap-6">
-                  <TarotCard 
-                    name={yesNoResult.card_name} 
-                    isRevealed={isRevealed} 
-                    onClick={() => setIsRevealed(true)} 
-                  />
-                  {!isRevealed && (
-                    <motion.p 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-sm uppercase tracking-[0.3em] text-accent font-black animate-bounce"
-                    >
-                      Clique para revelar
-                    </motion.p>
-                  )}
-                </div>
-
-                {isRevealed && (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className={`w-full p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border-2 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.3)] text-center space-y-8 ${currentTheme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}
-                  >
-                    <div className="space-y-4">
-                      <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-accent">A RESPOSTA É</h4>
-                      <div className={`text-6xl md:text-7xl font-black serif tracking-tighter ${yesNoResult.answer === 'Sim' ? 'text-emerald-500' : yesNoResult.answer === 'Não' ? 'text-rose-500' : 'text-accent'}`}>
-                        {yesNoResult.answer}
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <h3 className="text-2xl md:text-3xl font-bold text-accent tracking-tight">{yesNoResult.card_name}</h3>
-                      <p className="text-lg md:text-xl leading-relaxed font-medium opacity-90">{yesNoResult.reasoning}</p>
-                      <div className="h-1 w-32 bg-accent/30 mx-auto rounded-full" />
-                      <p className={`text-lg italic font-bold ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{yesNoResult.guidance}</p>
-                    </div>
-
-                    <div className="pt-8 border-t-2 border-accent/10">
-                      <p className="serif italic text-2xl text-accent font-bold mb-8 tracking-tight">{yesNoResult.closing_message}</p>
-                      <button
-                        onClick={reset}
-                        className="inline-flex items-center gap-3 text-accent hover:scale-105 transition-all text-sm uppercase tracking-[0.3em] font-black border-b-2 border-accent pb-1"
-                      >
-                        <RotateCcw size={20} />
-                        Nova Consulta
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-        </main>
-
-        <AnimatePresence>
-          {showLeadForm && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[200] flex bg-slate-950"
-            >
-              {/* Left Side: Galaxy Image & Logo */}
-              <div className="hidden lg:flex flex-1 relative overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2022&auto=format&fit=crop" 
-                  alt="Galaxy" 
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent" />
-                <div className="relative z-10 flex flex-col items-center justify-center w-full p-20 text-center space-y-8">
-                  <div className="p-4 rounded-[3rem] border-4 border-accent/40 bg-white/5 backdrop-blur-xl shadow-[0_0_50px_rgba(var(--accent-rgb),0.3)]">
+              <div className="glass p-8 md:p-12 rounded-[3rem] shadow-2xl mystic-glow space-y-10">
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="p-1 rounded-[2.5rem] border-2 border-accent/30 bg-white/5 backdrop-blur-xl shadow-xl">
                     <img 
                       src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
                       alt="INTUA" 
-                      className="w-32 h-32 object-cover rounded-[2.5rem]"
+                      className="w-24 h-24 object-cover rounded-[2.2rem]"
                       referrerPolicy="no-referrer"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <h1 className="serif text-6xl font-bold tracking-tighter text-mystic">INTUA</h1>
+                    <p className="text-accent text-xs font-black uppercase tracking-[0.5em]">Maga das Escolhas</p>
+                  </div>
+                  <p className="text-sm opacity-70 font-medium leading-relaxed max-w-xs">
+                    A sabedoria milenar do Tarô traduzida para o seu momento presente.
+                  </p>
+                </div>
+
+                <form onSubmit={handleLeadSubmit} className="space-y-6">
                   <div className="space-y-4">
-                    <h1 className="serif text-8xl font-bold text-white tracking-tighter">INTUA</h1>
-                    <p className="text-accent text-xl font-black uppercase tracking-[0.5em]">Maga das Escolhas</p>
+                    <div className="relative group">
+                      <User className="absolute left-6 top-1/2 -translate-y-1/2 text-accent/50 group-focus-within:text-accent transition-colors" size={20} />
+                      <input 
+                        required
+                        type="text"
+                        placeholder="Seu nome"
+                        className="w-full pl-16 pr-8 py-5 rounded-2xl bg-white/5 border-2 border-white/10 outline-none transition-all font-bold text-base focus:border-accent/50 focus:bg-white/10"
+                        value={leadFormData.name}
+                        onChange={e => setLeadFormData(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className="relative group">
+                      <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-accent/50 group-focus-within:text-accent transition-colors" size={20} />
+                      <input 
+                        required
+                        type="email"
+                        placeholder="Seu e-mail"
+                        className="w-full pl-16 pr-8 py-5 rounded-2xl bg-white/5 border-2 border-white/10 outline-none transition-all font-bold text-base focus:border-accent/50 focus:bg-white/10"
+                        value={leadFormData.email}
+                        onChange={e => setLeadFormData(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className="relative group">
+                      <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-accent/50 group-focus-within:text-accent transition-colors" size={20} />
+                      <input 
+                        required
+                        type="tel"
+                        placeholder="Seu WhatsApp"
+                        className="w-full pl-16 pr-8 py-5 rounded-2xl bg-white/5 border-2 border-white/10 outline-none transition-all font-bold text-base focus:border-accent/50 focus:bg-white/10"
+                        value={leadFormData.whatsapp}
+                        onChange={e => setLeadFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
+                      />
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Right Side: Form */}
-              <div className={`flex-1 flex items-center justify-center p-6 md:p-20 ${currentTheme === 'dark' ? 'bg-slate-900' : 'bg-white'}`}>
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="w-full max-w-md space-y-8 md:space-y-12"
-                >
-                  <div className="lg:hidden flex justify-center mb-6 md:mb-8">
-                    <img 
-                      src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
-                      alt="INTUA" 
-                      className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-2xl md:rounded-3xl border-2 border-accent/30"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:space-y-3">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-accent/20 rounded-lg md:rounded-xl flex items-center justify-center text-accent">
-                      <Sparkles size={20} className="md:w-6 md:h-6" />
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-black serif tracking-tight">Bem-vinda(o) ao INTUA</h2>
-                    <p className="text-sm md:text-base opacity-70 font-medium leading-relaxed">Para começarmos sua jornada de orientação, por favor preencha seus dados de contato.</p>
-                  </div>
-
-                  <form onSubmit={handleLeadSubmit} className="space-y-4 md:space-y-6">
-                    <div className="space-y-1.5 md:space-y-2">
-                      <label className="text-[9px] uppercase tracking-widest font-black opacity-40 ml-4">Nome Completo</label>
-                      <div className="relative">
-                        <User className="absolute left-5 md:left-6 top-1/2 -translate-y-1/2 text-accent md:w-5 md:h-5" size={18} />
-                        <input 
-                          required
-                          type="text"
-                          placeholder="Como deseja ser chamada(o)?"
-                          className={`w-full pl-14 md:pl-16 pr-6 md:pr-8 py-4 md:py-5 rounded-xl md:rounded-2xl border-2 outline-none transition-all font-bold text-sm md:text-base ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 focus:border-accent' : 'bg-slate-50 border-slate-200 focus:border-accent'}`}
-                          value={leadFormData.name}
-                          onChange={e => setLeadFormData(prev => ({ ...prev, name: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5 md:space-y-2">
-                      <label className="text-[9px] uppercase tracking-widest font-black opacity-40 ml-4">E-mail</label>
-                      <div className="relative">
-                        <Mail className="absolute left-5 md:left-6 top-1/2 -translate-y-1/2 text-accent md:w-5 md:h-5" size={18} />
-                        <input 
-                          required
-                          type="email"
-                          placeholder="seu@email.com"
-                          className={`w-full pl-14 md:pl-16 pr-6 md:pr-8 py-4 md:py-5 rounded-xl md:rounded-2xl border-2 outline-none transition-all font-bold text-sm md:text-base ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 focus:border-accent' : 'bg-slate-50 border-slate-200 focus:border-accent'}`}
-                          value={leadFormData.email}
-                          onChange={e => setLeadFormData(prev => ({ ...prev, email: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5 md:space-y-2">
-                      <label className="text-[9px] uppercase tracking-widest font-black opacity-40 ml-4">WhatsApp</label>
-                      <div className="relative">
-                        <Phone className="absolute left-5 md:left-6 top-1/2 -translate-y-1/2 text-accent md:w-5 md:h-5" size={18} />
-                        <input 
-                          required
-                          type="tel"
-                          placeholder="(00) 00000-0000"
-                          className={`w-full pl-14 md:pl-16 pr-6 md:pr-8 py-4 md:py-5 rounded-xl md:rounded-2xl border-2 outline-none transition-all font-bold text-sm md:text-base ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 focus:border-accent' : 'bg-slate-50 border-slate-200 focus:border-accent'}`}
-                          value={leadFormData.whatsapp}
-                          onChange={e => setLeadFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-
-                    <button 
-                      type="submit"
-                      className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-accent text-white font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl shadow-accent/30 text-sm md:text-base"
-                    >
-                      Começar Orientação
-                    </button>
-                  </form>
-                </motion.div>
+                  <button 
+                    type="submit"
+                    className="w-full py-5 rounded-2xl bg-accent text-slate-950 font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-accent/20 text-base"
+                  >
+                    Entrar no Oráculo
+                  </button>
+                </form>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <footer className={`w-full py-8 text-center transition-opacity duration-700 ${currentTheme === 'dark' ? 'text-white/40' : 'text-black/40'}`}>
-        <p className="text-[9px] font-black tracking-[0.5em] uppercase">
-          © Maga Das Escolhas. Todos os direitos reservados.
-        </p>
-      </footer>
+          </div>
+        } />
+        <Route path="/pt/home" element={<HomeContent />} />
+        <Route path="/pt/home/:type" element={<HomeContent />} />
+        <Route path="*" element={<Navigate to="/pt/home" replace />} />
+      </Routes>
     </div>
   );
-}
+
+  function HomeContent() {
+    const { type } = useParams<{ type: string }>();
+    
+    useEffect(() => {
+      if (type === 'tarot') setMode('tarot');
+      else if (type === 'yesno') setMode('yesno');
+      else setMode('menu');
+    }, [type]);
+
+    return (
+      <div className="w-full flex flex-col items-center">
+        {/* Locked Feature Modal */}
+            <AnimatePresence>
+              {lockedMessage && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-md"
+                  onClick={() => setLockedMessage(null)}
+                >
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    className="max-w-md w-full p-10 rounded-[3rem] glass shadow-2xl text-center space-y-6 mystic-glow"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="w-20 h-20 bg-accent/20 rounded-3xl flex items-center justify-center mx-auto text-accent">
+                      <Clock size={40} />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-3xl font-black serif tracking-tight">{lockedMessage.title}</h3>
+                      <p className="text-sm uppercase tracking-[0.3em] font-black text-slate-400">
+                        Em Breve
+                      </p>
+                    </div>
+                    <p className={`text-lg font-medium leading-relaxed opacity-80 ${currentTheme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>
+                      Esta tiragem especializada está sendo preparada pela Maga e estará disponível em breve para todos os usuários.
+                    </p>
+                    <button 
+                      onClick={() => setLockedMessage(null)}
+                      className="w-full py-4 bg-accent text-white rounded-2xl font-black uppercase tracking-widest hover:bg-accent/90 transition-all shadow-xl shadow-accent/20"
+                    >
+                      Entendido
+                    </button>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Top Left Logo */}
+            <div className="fixed top-6 left-6 z-[60]">
+              <button 
+                onClick={reset}
+                className="group p-1 rounded-xl transition-all glass border border-accent/30 shadow-2xl overflow-hidden hover:border-accent"
+                title="Início"
+              >
+                <img 
+                  src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
+                  alt="INTUA" 
+                  className="w-10 h-10 object-cover rounded-lg group-hover:scale-110 transition-transform opacity-80"
+                  referrerPolicy="no-referrer"
+                />
+              </button>
+            </div>
+
+            {/* Fixed Hamburger Menu */}
+            <div className="fixed top-6 right-6 z-[60]">
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-3 rounded-full transition-all glass border border-white/10 hover:bg-white/10 text-white shadow-xl"
+                title="Menu"
+              >
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+
+            {/* Menu Overlay */}
+            <AnimatePresence>
+              {isMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, x: 300 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 300 }}
+                  className="fixed top-0 right-0 h-full w-80 z-50 shadow-2xl p-8 pt-24 glass-dark flex flex-col border-l border-white/5"
+                >
+                  <div className="flex flex-col gap-8 flex-grow overflow-y-auto pr-2 custom-scrollbar">
+                    {/* Theme Selector */}
+                    <div className="space-y-4">
+                      <h3 className={`text-[10px] uppercase tracking-[0.3em] font-black ${currentTheme === 'dark' ? 'text-white/40' : 'text-slate-900/40'}`}>Aparência</h3>
+                      <div className="relative">
+                        <button 
+                          onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
+                          className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'}`}
+                        >
+                          <div className="flex items-center gap-3 font-bold">
+                            {theme === 'dark' && <Moon size={18} />}
+                            {theme === 'light' && <Sun size={18} />}
+                            {theme === 'system' && <Monitor size={18} />}
+                            <span className="capitalize">{theme === 'system' ? 'Sistema' : theme === 'dark' ? 'Escuro' : 'Claro'}</span>
+                          </div>
+                          <ChevronDown size={18} className={`transition-transform ${isThemeDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                        <AnimatePresence>
+                          {isThemeDropdownOpen && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className={`absolute top-full left-0 w-full mt-2 rounded-2xl border-2 shadow-2xl z-10 overflow-hidden ${currentTheme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200'}`}
+                            >
+                              {(['light', 'dark', 'system'] as ThemeMode[]).map((m) => (
+                                <button
+                                  key={m}
+                                  onClick={() => {
+                                    setTheme(m);
+                                    setIsThemeDropdownOpen(false);
+                                  }}
+                                  className={`w-full flex items-center gap-3 p-4 hover:bg-accent hover:text-white transition-colors text-left font-bold ${theme === m ? 'text-accent' : ''}`}
+                                >
+                                  {m === 'light' && <Sun size={18} />}
+                                  {m === 'dark' && <Moon size={18} />}
+                                  {m === 'system' && <Monitor size={18} />}
+                                  <span className="capitalize">{m === 'system' ? 'Corresponder ao sistema' : m === 'dark' ? 'Escuro' : 'Claro'}</span>
+                                </button>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+
+                    {/* History Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className={`text-[10px] uppercase tracking-[0.3em] font-black ${currentTheme === 'dark' ? 'text-white/40' : 'text-slate-900/40'}`}>Histórico</h3>
+                        <div className="flex items-center gap-3">
+                          {history.length > 0 && (
+                            <button onClick={clearHistory} className="text-rose-500 hover:text-rose-400 transition-colors">
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {history.length === 0 ? (
+                          <div className="py-8 text-center opacity-30">
+                            <History size={32} className="mx-auto mb-2" />
+                            <p className="text-xs font-bold">Nenhuma consulta salva</p>
+                          </div>
+                        ) : (
+                          history.map((entry) => (
+                            <button
+                              key={entry.id}
+                              onClick={() => {
+                                if (entry.type === 'tarot') {
+                                  navigate('/pt/home/tarot');
+                                  setResult(entry.result as TarotResponse);
+                                  setYesNoResult(null);
+                                } else {
+                                  navigate('/pt/home/yesno');
+                                  setYesNoResult(entry.result as YesNoResponse);
+                                  setResult(null);
+                                }
+                                setQuestion(entry.question);
+                                setIsRevealed(true);
+                                setIsMenuOpen(false);
+                              }}
+                              className={`w-full p-4 rounded-2xl border-2 transition-all text-left group relative ${currentTheme === 'dark' ? 'bg-white/5 border-white/5 hover:border-accent/40' : 'bg-black/5 border-black/5 hover:border-accent/40'}`}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-[8px] uppercase tracking-widest font-black text-accent">
+                                  {entry.type === 'tarot' ? 'Tarô' : 'Sim/Não'}
+                                </span>
+                                <span className="text-[8px] opacity-40 font-bold">
+                                  {new Date(entry.timestamp).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-xs font-bold line-clamp-2 leading-relaxed opacity-80">{entry.question}</p>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteHistoryEntry(entry.id);
+                                }}
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-rose-500 hover:scale-110 transition-all p-1"
+                              >
+                                <X size={12} />
+                              </button>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-accent/20 my-2" />
+
+                    <button 
+                      onClick={() => {
+                        reset();
+                        setIsMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-4 text-lg font-bold hover:text-accent transition-colors mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}
+                    >
+                      <RotateCcw size={20} />
+                      Reiniciar App
+                    </button>
+
+                    <button 
+                      onClick={logout}
+                      className={`flex items-center gap-4 text-lg font-bold hover:text-rose-500 transition-colors mb-8 ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}
+                    >
+                      <LogOut size={20} />
+                      Sair
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Background Glows */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden">
+              <div className={`absolute -top-48 -right-48 w-[600px] h-[600px] rounded-full blur-[160px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-accent/20' : 'bg-accent/10'}`} />
+              <div className={`absolute -bottom-48 -left-48 w-[600px] h-[600px] rounded-full blur-[160px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-indigo-500/20' : 'bg-indigo-500/10'}`} />
+              <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[200px] transition-all duration-1000 ${currentTheme === 'dark' ? 'bg-purple-900/10' : 'bg-purple-100/20'}`} />
+            </div>
+
+            <div className="w-full max-w-4xl px-4 py-8 md:py-24 flex-grow flex flex-col items-center relative z-10">
+              <header className="text-center mb-12 md:mb-20">
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-col items-center justify-center gap-6 md:gap-8 mb-8 md:mb-10"
+                >
+                  <div className={`p-1 md:p-1.5 rounded-[1.5rem] md:rounded-[2rem] border-4 transition-all shadow-[0_0_50px_rgba(var(--accent-rgb),0.2)] overflow-hidden ${currentTheme === 'dark' ? 'bg-white/5 border-accent/40' : 'bg-white border-accent/30'}`} style={{ width: '80px', height: '80px', minWidth: '80px', minHeight: '80px' }}>
+                    <img 
+                      src="https://www.dropbox.com/scl/fi/iu82vvshon6xpl6hh90o1/intua-logo.png?rlkey=gs7opxoa2b9pe2l7fsgcsiiyh&st=i6ri4bvm&raw=1" 
+                      alt="INTUA Logo" 
+                      className="w-full h-full object-cover rounded-[1rem] md:rounded-[1.5rem] scale-110"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 md:gap-3 text-accent">
+                    <Sparkles size={16} className="animate-pulse" />
+                    <span className="text-[10px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.4em] font-black">Maga das Escolhas</span>
+                  </div>
+                </motion.div>
+                <motion.h1 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`serif text-4xl md:text-6xl font-bold tracking-tighter mb-3 md:mb-4 bg-clip-text text-transparent bg-gradient-to-b ${currentTheme === 'dark' ? 'from-white to-white/40' : 'from-slate-950 to-slate-600'}`}
+                >
+                  INTUA
+                </motion.h1>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className={`max-w-lg mx-auto leading-relaxed font-medium text-sm md:text-base px-4 ${currentTheme === 'dark' ? 'text-slate-200 opacity-90' : 'text-slate-800'}`}
+                >
+                  A sabedoria milenar do Tarô traduzida para o seu momento presente. 
+                  Encontre clareza em suas escolhas.
+                </motion.p>
+              </header>
+
+              <main className="w-full flex flex-col items-center">
+                {mode === 'menu' && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 w-full max-w-4xl"
+                  >
+                    <button
+                      onClick={() => navigate('/pt/home/tarot')}
+                      className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] glass transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden hover:border-accent hover:shadow-2xl mystic-glow"
+                    >
+                      <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-accent/20 text-accent w-fit group-hover:scale-110 transition-transform">
+                        <MessageSquare size={20} className="md:w-6 md:h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-base md:text-lg font-black mb-1 md:mb-1.5">Orientação Completa</h3>
+                        <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Uma leitura profunda com dois caminhos para sua decisão.</p>
+                      </div>
+                      <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <MessageSquare size={60} className="md:w-[80px] md:h-[80px]" />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => navigate('/pt/home/yesno')}
+                      className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] glass transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden hover:border-accent hover:shadow-2xl mystic-glow"
+                    >
+                      <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-accent/20 text-accent w-fit group-hover:scale-110 transition-transform">
+                        <HelpCircle size={20} className="md:w-6 md:h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-base md:text-lg font-black mb-1 md:mb-1.5">Sim ou Não</h3>
+                        <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Uma resposta rápida e direta para perguntas pontuais.</p>
+                      </div>
+                      <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <HelpCircle size={60} className="md:w-[80px] md:h-[80px]" />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setLockedMessage({ title: 'Tiragem de Relacionamento' })}
+                      className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden opacity-70 hover:opacity-100 ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent/40' : 'bg-white border-slate-200 hover:border-accent/40 shadow-md'}`}
+                    >
+                      <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-slate-400/10 text-slate-400 w-fit group-hover:scale-110 transition-transform">
+                        <Heart size={20} className="md:w-6 md:h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-base md:text-lg font-black">Relacionamento</h3>
+                          <Clock size={10} className="text-slate-400 md:w-3 md:h-3" />
+                        </div>
+                        <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Analise a conexão e o futuro entre duas pessoas.</p>
+                      </div>
+                      <div className="absolute top-2 right-2 md:top-2.5 md:right-2.5 text-[6px] md:text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Em Breve</div>
+                    </button>
+
+                    <button
+                      onClick={() => setLockedMessage({ title: 'Tiragem de Carreira' })}
+                      className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden opacity-70 hover:opacity-100 ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent/40' : 'bg-white border-slate-200 hover:border-accent/40 shadow-md'}`}
+                    >
+                      <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-slate-400/10 text-slate-400 w-fit group-hover:scale-110 transition-transform">
+                        <Briefcase size={20} className="md:w-6 md:h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-base md:text-lg font-black">Carreira & Finanças</h3>
+                          <Clock size={10} className="text-slate-400 md:w-3 md:h-3" />
+                        </div>
+                        <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Orientações estratégicas para sua vida profissional.</p>
+                      </div>
+                      <div className="absolute top-2 right-2 md:top-2.5 md:right-2.5 text-[6px] md:text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Em Breve</div>
+                    </button>
+
+                    <button
+                      onClick={() => setLockedMessage({ title: 'Autoconhecimento' })}
+                      className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden opacity-70 hover:opacity-100 ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent/40' : 'bg-white border-slate-200 hover:border-accent/40 shadow-md'}`}
+                    >
+                      <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-slate-400/10 text-slate-400 w-fit group-hover:scale-110 transition-transform">
+                        <User size={20} className="md:w-6 md:h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-base md:text-lg font-black">Autoconhecimento</h3>
+                          <Clock size={10} className="text-slate-400 md:w-3 md:h-3" />
+                        </div>
+                        <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Mergulhe em sua essência e descubra seu propósito.</p>
+                      </div>
+                      <div className="absolute top-2 right-2 md:top-2.5 md:right-2.5 text-[6px] md:text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Em Breve</div>
+                    </button>
+
+                    <button
+                      onClick={() => setLockedMessage({ title: 'Tendências do Ano' })}
+                      className={`p-4 md:p-6 rounded-[1.25rem] md:rounded-[1.5rem] border-2 transition-all text-left flex flex-col gap-2 md:gap-4 group relative overflow-hidden opacity-70 hover:opacity-100 ${currentTheme === 'dark' ? 'bg-white/5 border-white/10 hover:border-accent/40' : 'bg-white border-slate-200 hover:border-accent/40 shadow-md'}`}
+                    >
+                      <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-slate-400/10 text-slate-400 w-fit group-hover:scale-110 transition-transform">
+                        <TrendingUp size={20} className="md:w-6 md:h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-base md:text-lg font-black">Tendências do Ano</h3>
+                          <Clock size={10} className="text-slate-400 md:w-3 md:h-3" />
+                        </div>
+                        <p className={`text-[10px] md:text-xs font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Uma visão panorâmica dos seus próximos 12 meses.</p>
+                      </div>
+                      <div className="absolute top-2 right-2 md:top-2.5 md:right-2.5 text-[6px] md:text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-400/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Em Breve</div>
+                    </button>
+                  </motion.div>
+                )}
+
+                {(mode === 'tarot' || mode === 'yesno') && !result && !yesNoResult && !loading && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full max-w-xl space-y-8"
+                  >
+                    <button 
+                      onClick={() => navigate('/pt/home')}
+                      className="text-accent hover:underline text-sm font-black mb-4 flex items-center gap-2 uppercase tracking-widest"
+                    >
+                      ← Voltar ao menu
+                    </button>
+                    <form onSubmit={handleDraw} className="space-y-8">
+                      <div className="relative group">
+                          <textarea
+                            ref={textareaRef}
+                            value={question}
+                            onChange={(e) => setQuestion(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={mode === 'tarot' ? "Sobre qual decisão você precisa de clareza hoje?" : "Faça uma pergunta de Sim ou Não..."}
+                            className="w-full h-48 px-8 py-8 rounded-[2.5rem] glass border-2 border-white/10 shadow-2xl outline-none transition-all resize-none text-xl leading-relaxed placeholder:opacity-40 font-medium focus:border-accent/40 focus:bg-white/5 text-white"
+                            required
+                          />
+                        <div className="absolute bottom-8 right-8 flex items-center gap-3 text-accent/40 group-focus-within:text-accent transition-colors">
+                          <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">CTRL + ENTER para enviar</span>
+                          <Search size={28} />
+                        </div>
+                      </div>
+                      {error && (
+                        <motion.div 
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: [0, -10, 10, -10, 10, 0] }}
+                          transition={{ duration: 0.5 }}
+                          className="text-rose-500 text-sm text-center font-bold bg-rose-500/10 p-6 rounded-3xl border border-rose-500/20 shadow-[0_0_30px_rgba(244,63,94,0.1)]"
+                        >
+                          <div className="flex items-center justify-center gap-2 mb-1">
+                            <HelpCircle size={16} />
+                            <span className="uppercase tracking-widest text-[10px]">A Maga diz:</span>
+                          </div>
+                          {error}
+                        </motion.div>
+                      )}
+                      <button
+                        type="submit"
+                        disabled={!question.trim()}
+                        className="w-full py-5 bg-accent text-white rounded-full font-black tracking-[0.1em] uppercase hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xl shadow-accent/30 flex items-center justify-center gap-3 text-xl"
+                      >
+                        {mode === 'tarot' ? 'Tirar uma Carta' : 'Obter Resposta'}
+                        <ArrowRight size={22} />
+                      </button>
+                    </form>
+                  </motion.div>
+                )}
+
+                {loading && (
+                  <div className="flex flex-col items-center gap-8 py-16">
+                    <div className="relative">
+                      <Loader2 className="animate-spin text-accent" size={80} />
+                      <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-accent/40 animate-pulse" size={32} />
+                    </div>
+                    <p className="serif italic text-3xl text-accent font-bold animate-pulse tracking-tight">Sintonizando sua intuição...</p>
+                  </div>
+                )}
+
+                <AnimatePresence>
+                  {result && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 40 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="w-full flex flex-col items-center gap-16"
+                    >
+                      <div className="flex flex-col items-center gap-6">
+                        <TarotCard 
+                          name={result.card_name} 
+                          isRevealed={isRevealed} 
+                          onClick={() => setIsRevealed(true)} 
+                        />
+                        {!isRevealed && (
+                          <motion.p 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-sm uppercase tracking-[0.3em] text-accent font-black animate-bounce"
+                          >
+                            Clique para revelar
+                          </motion.p>
+                        )}
+                      </div>
+
+                      {isRevealed && (
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full"
+                        >
+                          <section className="md:col-span-2 text-center space-y-4 max-w-2xl mx-auto mb-8">
+                            <h2 className="serif text-3xl md:text-4xl font-bold text-accent tracking-tighter">{result.card_name}</h2>
+                            <p className={`text-lg leading-relaxed italic font-medium opacity-90 ${currentTheme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{result.card_meaning}</p>
+                            <div className="h-1 w-32 bg-accent/30 mx-auto rounded-full" />
+                            <p className="text-lg leading-relaxed font-medium">{result.guidance}</p>
+                          </section>
+
+                          <div className="md:col-span-2 text-center mb-4">
+                            <p className="serif text-2xl text-accent font-bold italic tracking-tight">
+                              "Escolha o caminho que mais ressoa agora."
+                            </p>
+                          </div>
+
+                            <div 
+                              onClick={() => !selectedPath && setSelectedPath('A')}
+                              className={`transition-all duration-700 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] glass shadow-2xl space-y-4 flex flex-col ${!selectedPath ? 'cursor-pointer hover:border-accent hover:shadow-accent/20' : ''} ${selectedPath === 'A' ? 'border-accent ring-8 ring-accent/10 mystic-glow' : 'border-white/10 opacity-95 hover:opacity-100'} ${selectedPath === 'B' ? 'hidden md:flex opacity-10 grayscale pointer-events-none' : ''}`}
+                            >
+                              <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-accent">{result.path_a_label}</h4>
+                              <p className="font-bold text-xl leading-tight">{result.path_a}</p>
+                              <div className="pt-4 border-t-2 border-accent/10">
+                                <p className={`text-[8px] uppercase tracking-[0.15em] mb-2 font-black ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>O QUE PODE ACONTECER</p>
+                                <p className={`text-base font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>{result.outcome_a}</p>
+                              </div>
+                            {selectedPath === 'A' && (
+                              <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="pt-4 mt-4 border-t-2 border-accent/20 text-accent font-bold italic leading-relaxed text-lg"
+                              >
+                                {result.detailed_guidance_a}
+                              </motion.div>
+                            )}
+                            {!selectedPath && (
+                              <button 
+                                onClick={() => setSelectedPath('A')}
+                                className="mt-auto w-full py-4 bg-accent text-white rounded-xl shadow-xl hover:bg-accent/90 transition-all font-black uppercase text-[10px] tracking-[0.15em]"
+                              >
+                                Escolher este caminho
+                              </button>
+                            )}
+                          </div>
+
+                            <div 
+                              onClick={() => !selectedPath && setSelectedPath('B')}
+                              className={`transition-all duration-700 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] glass shadow-2xl space-y-4 flex flex-col ${!selectedPath ? 'cursor-pointer hover:border-accent hover:shadow-accent/20' : ''} ${selectedPath === 'B' ? 'border-accent ring-8 ring-accent/10 mystic-glow' : 'border-white/10 opacity-95 hover:opacity-100'} ${selectedPath === 'A' ? 'hidden md:flex opacity-10 grayscale pointer-events-none' : ''}`}>
+                              <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-accent">{result.path_b_label}</h4>
+                              <p className="font-bold text-xl leading-tight">{result.path_b}</p>
+                              <div className="pt-4 border-t-2 border-accent/10">
+                                <p className={`text-[8px] uppercase tracking-[0.15em] mb-2 font-black ${currentTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>O QUE PODE ACONTECER</p>
+                                <p className={`text-base font-medium leading-relaxed ${currentTheme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>{result.outcome_b}</p>
+                              </div>
+                            {selectedPath === 'B' && (
+                              <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="pt-4 mt-4 border-t-2 border-accent/20 text-accent font-bold italic leading-relaxed text-lg"
+                              >
+                                {result.detailed_guidance_b}
+                              </motion.div>
+                            )}
+                            {!selectedPath && (
+                              <button 
+                                onClick={() => setSelectedPath('B')}
+                                className="mt-auto w-full py-4 bg-accent text-white rounded-xl shadow-xl hover:bg-accent/90 transition-all font-black uppercase text-[10px] tracking-[0.15em]"
+                              >
+                                Escolher este caminho
+                              </button>
+                            )}
+                          </div>
+
+                          <footer className="md:col-span-2 text-center pt-8 space-y-8">
+                            <p className="serif italic text-2xl text-accent font-bold tracking-tight">{result.closing_message}</p>
+                            <div className="flex flex-col items-center gap-6">
+                              <button
+                                onClick={reset}
+                                className="inline-flex items-center gap-3 text-accent hover:scale-105 transition-all text-sm uppercase tracking-[0.3em] font-black border-b-2 border-accent pb-1"
+                              >
+                                <RotateCcw size={20} />
+                                Nova Consulta
+                              </button>
+                            </div>
+                          </footer>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {yesNoResult && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 40 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="w-full flex flex-col items-center gap-12 max-w-2xl"
+                    >
+                      <div className="flex flex-col items-center gap-6">
+                        <TarotCard 
+                          name={yesNoResult.card_name} 
+                          isRevealed={isRevealed} 
+                          onClick={() => setIsRevealed(true)} 
+                        />
+                        {!isRevealed && (
+                          <motion.p 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-sm uppercase tracking-[0.3em] text-accent font-black animate-bounce"
+                          >
+                            Clique para revelar
+                          </motion.p>
+                        )}
+                      </div>
+
+                      {isRevealed && (
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="w-full p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] glass shadow-2xl text-center space-y-8 border border-white/10 mystic-glow"
+                        >
+                          <div className="space-y-4">
+                            <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-accent">A RESPOSTA É</h4>
+                            <div className={`text-6xl md:text-7xl font-black serif tracking-tighter ${yesNoResult.answer === 'Sim' ? 'text-emerald-500' : yesNoResult.answer === 'Não' ? 'text-rose-500' : 'text-accent'}`}>
+                              {yesNoResult.answer}
+                            </div>
+                          </div>
+
+                          <div className="space-y-6">
+                            <h3 className="text-2xl md:text-3xl font-bold text-accent tracking-tight">{yesNoResult.card_name}</h3>
+                            <p className="text-lg md:text-xl leading-relaxed font-medium opacity-90">{yesNoResult.reasoning}</p>
+                            <div className="h-1 w-32 bg-accent/30 mx-auto rounded-full" />
+                            <p className={`text-lg italic font-bold ${currentTheme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{yesNoResult.guidance}</p>
+                          </div>
+
+                          <div className="pt-8 border-t-2 border-accent/10">
+                            <p className="serif italic text-2xl text-accent font-bold mb-8 tracking-tight">{yesNoResult.closing_message}</p>
+                            <button
+                              onClick={reset}
+                              className="inline-flex items-center gap-3 text-accent hover:scale-105 transition-all text-sm uppercase tracking-[0.3em] font-black border-b-2 border-accent pb-1"
+                            >
+                              <RotateCcw size={20} />
+                              Nova Consulta
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </main>
+
+              <footer className={`w-full py-8 text-center transition-opacity duration-700 ${currentTheme === 'dark' ? 'text-white/40' : 'text-black/40'}`}>
+                <p className="text-[9px] font-black tracking-[0.5em] uppercase">
+                  © Maga Das Escolhas. Todos os direitos reservados.
+                </p>
+              </footer>
+            </div>
+          </div>
+        );
+      }
+    }

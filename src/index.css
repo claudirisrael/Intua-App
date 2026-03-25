@@ -5,17 +5,50 @@
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Inter", sans-serif;
   
-  --color-paper: #020617;
+  --color-paper: #050505;
   --color-ink: #ffffff;
-  --color-accent: #fbbf24;
-  --color-blue-deep: #1e293b;
-  --color-blue-light: #334155;
+  --color-accent: #d4af37; /* Mystical Gold */
+  --color-mystic-purple: #2e1065;
+  --color-mystic-indigo: #1e1b4b;
+}
+
+html {
+  font-size: 14px;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #020617;
-  color: #ffffff;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  overflow-x: hidden;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.mystic-glow {
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.15);
+}
+
+.text-mystic {
+  background: linear-gradient(to bottom, #ffffff 0%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.app-container {
+  @apply min-h-screen flex flex-col;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 button, 
@@ -68,5 +101,13 @@ button, select, [role="button"], .cursor-pointer {
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(251, 191, 36, 0.4);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
